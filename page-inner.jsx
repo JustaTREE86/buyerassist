@@ -55,20 +55,20 @@ function ServicesPage({ onNavigate }) {
               <h2 className="h1" style={{ marginTop: 16, maxWidth: '14ch' }}>The brief. Then the work. <em style={{fontStyle:'italic', color:'var(--gold-2)'}}>That's it.</em></h2>
             </div>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0, borderTop: '1px solid var(--line)', borderBottom: '1px solid var(--line)' }}>
-            <div style={{ padding: '48px 40px', borderRight: '1px solid var(--line)' }}>
+          <div className="grid-2">
+            <div>
               <h3 className="h3">Discovery call</h3>
               <p className="body" style={{ marginTop: 12 }}>A 20-minute conversation, by phone or in our Chermside office. We listen first, ask the questions that matter, and tell you honestly whether we can help.</p>
             </div>
-            <div style={{ padding: '48px 40px' }}>
+            <div>
               <h3 className="h3">Submission</h3>
               <p className="body" style={{ marginTop: 12 }}>We package your application the way each lender wants to read it. Same documents — better story. That's where decades of broking experience earn the commission.</p>
             </div>
-            <div style={{ padding: '48px 40px', borderRight: '1px solid var(--line)', borderTop: '1px solid var(--line)' }}>
+            <div>
               <h3 className="h3">Negotiation</h3>
               <p className="body" style={{ marginTop: 12 }}>Rates aren't fixed numbers. We negotiate margin, term, and fees on your behalf — and we tell you exactly where the lever moved.</p>
             </div>
-            <div style={{ padding: '48px 40px', borderTop: '1px solid var(--line)' }}>
+            <div>
               <h3 className="h3">Settlement</h3>
               <p className="body" style={{ marginTop: 12 }}>We coordinate with the dealership, supplier, or vendor directly. You sign once, drive away, settle the books. Done.</p>
             </div>
@@ -195,15 +195,15 @@ function AboutPage({ onNavigate }) {
       {/* Numbers strip */}
       <section className="section dark" style={{ padding: 'clamp(60px, 8vw, 100px) 0' }}>
         <div className="container">
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 0, borderTop: '1px solid var(--line-dark)', borderBottom: '1px solid var(--line-dark)' }}>
+          <div className="grid-stats-4">
             {[
               { n: '50+', l: 'Lenders on panel' },
               { n: '24h', l: 'Average pre-approval' },
               { n: '7', l: 'Loan products' },
               { n: '$0', l: 'Cost for a quote' },
-            ].map((s, i, arr) => (
-              <div key={s.l} style={{ padding: '48px 32px', borderRight: i < arr.length - 1 ? '1px solid var(--line-dark)' : 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                <span style={{ fontFamily: 'var(--serif)', fontWeight: 300, fontSize: 'clamp(48px, 5vw, 72px)', lineHeight: 0.95, color: 'var(--gold)' }}>{s.n}</span>
+            ].map((s) => (
+              <div key={s.l}>
+                <span style={{ fontFamily: 'var(--serif)', fontWeight: 300, fontSize: 'clamp(40px, 5vw, 72px)', lineHeight: 0.95, color: 'var(--gold)' }}>{s.n}</span>
                 <span style={{ fontSize: 12, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(245,241,232,0.66)' }}>{s.l}</span>
               </div>
             ))}
@@ -365,12 +365,12 @@ function ApplyPage({ initialLoan, onNavigate }) {
             <p className="lede" style={{ maxWidth: '40ch', marginBottom: 40 }}>
               A broker will call you within 24 business hours. In the meantime, here's a quick read on what to expect.
             </p>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0, border: '1px solid var(--line)', marginBottom: 40 }}>
-              <div style={{ padding: 28, borderRight: '1px solid var(--line)' }}>
+            <div className="grid-summary" style={{ marginBottom: 40 }}>
+              <div>
                 <span className="eyebrow"><span className="dot"></span>Reference</span>
                 <div style={{ fontFamily: 'var(--serif)', fontSize: 28, marginTop: 12 }} className="tabular">BAG-{Math.floor(Math.random()*9000+1000)}</div>
               </div>
-              <div style={{ padding: 28 }}>
+              <div>
                 <span className="eyebrow"><span className="dot"></span>Your broker</span>
                 <div style={{ fontFamily: 'var(--serif)', fontSize: 28, marginTop: 12 }}>To be assigned</div>
               </div>

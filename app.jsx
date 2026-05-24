@@ -68,38 +68,75 @@ const PALETTES = {
 };
 
 // =============================================================
-// Nav
+// Nav (with mobile drawer)
 // =============================================================
 function Nav({ current, onNavigate, logoVariant }) {
+  const [open, setOpen] = useStateApp(false);
   const links = [
     { id: 'home', label: 'Home' },
     { id: 'services', label: 'Loan products' },
     { id: 'about', label: 'About' },
     { id: 'apply', label: 'Apply' },
   ];
+  const go = (id) => { setOpen(false); onNavigate(id); };
+  useEffectApp(() => {
+    document.body.style.overflow = open ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [open]);
   return (
-    <nav className="nav">
-      <div className="container">
-        <div className="nav-inner">
-          <div className="nav-logo" onClick={() => onNavigate('home')}>
-            {logoVariant === 'existing' ? <LogoExisting light={true}/> : <LogoProposed light={true}/>}
+    <>
+      <nav className="nav">
+        <div className="container">
+          <div className="nav-inner">
+            <div className="nav-logo" onClick={() => go('home')}>
+              {logoVariant === 'existing' ? <LogoExisting light={true}/> : <LogoProposed light={true}/>}
+            </div>
+            <div className="nav-links nav-links-desktop">
+              {links.map(l => (
+                <a key={l.id} className={`nav-link ${current === l.id ? 'active' : ''}`} onClick={() => go(l.id)}>
+                  {l.label}
+                </a>
+              ))}
+            </div>
+            <div className="nav-cta">
+              <a href="tel:0480850255" className="nav-phone tabular nav-phone-desktop">0480 850 255</a>
+              <a className="btn primary nav-cta-btn" onClick={() => go('apply')}>
+                <span className="nav-cta-text-long">Pre-approval</span>
+                <span className="nav-cta-text-short">Apply</span>
+                <span className="arrow">→</span>
+              </a>
+              <button className={`nav-burger ${open ? 'open' : ''}`} onClick={() => setOpen(v => !v)} aria-label="Menu" aria-expanded={open}>
+                <span></span><span></span><span></span>
+              </button>
+            </div>
           </div>
-          <div className="nav-links">
-            {links.map(l => (
-              <a key={l.id} className={`nav-link ${current === l.id ? 'active' : ''}`} onClick={() => onNavigate(l.id)}>
-                {l.label}
+        </div>
+      </nav>
+      <div className={`nav-drawer ${open ? 'open' : ''}`} onClick={() => setOpen(false)}>
+        <div className="nav-drawer-inner" onClick={e => e.stopPropagation()}>
+          <div className="nav-drawer-head">
+            <div onClick={() => go('home')}>
+              {logoVariant === 'existing' ? <LogoExisting light={true}/> : <LogoProposed light={true}/>}
+            </div>
+            <button className="nav-drawer-close" onClick={() => setOpen(false)} aria-label="Close">✕</button>
+          </div>
+          <div className="nav-drawer-links">
+            {links.map((l, i) => (
+              <a key={l.id} className={`nav-drawer-link ${current === l.id ? 'active' : ''}`} onClick={() => go(l.id)}>
+                <span className="num">{['i','ii','iii','iv'][i]}.</span>
+                <span className="lbl">{l.label}</span>
+                <span className="arrow">→</span>
               </a>
             ))}
           </div>
-          <div className="nav-cta">
-            <span className="nav-phone tabular">0480 850 255</span>
-            <a className="btn primary" style={{ padding: '10px 18px', fontSize: 13 }} onClick={() => onNavigate('apply')}>
-              Pre-approval <span className="arrow">→</span>
-            </a>
+          <div className="nav-drawer-foot">
+            <span className="eyebrow on-dark"><span className="dot"></span>Speak to a broker</span>
+            <a href="tel:0480850255" className="nav-drawer-phone">0480 850 255</a>
+            <a href="mailto:connect@thebuyerassist.com.au" className="nav-drawer-email">connect@thebuyerassist.com.au</a>
           </div>
         </div>
       </div>
-    </nav>
+    </>
   );
 }
 
