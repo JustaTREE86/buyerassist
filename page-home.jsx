@@ -37,7 +37,7 @@ function Hero({ variant, palette, onNavigate }) {
               </span>
               <img src={PHOTOS.leonie} alt="Leonie — Principal Broker"/>
               <div className="pt-caption">
-                <span className="role">Principal Broker · ACL 414426</span>
+                <span className="role">Principal Broker · ACR 564090</span>
                 <span className="who">Leonie</span>
               </div>
             </div>
@@ -156,16 +156,16 @@ function HeroStrip() {
             <span className="v tabular">564090</span>
           </div>
           <div className="hero-strip-item">
-            <span className="k">ACL</span>
-            <span className="v tabular">414426</span>
+            <span className="k">ACR</span>
+            <span className="v tabular">564090</span>
           </div>
           <div className="hero-strip-item">
             <span className="k">Speak to a broker</span>
-            <span className="v tabular">0480 850 255</span>
+            <span className="v tabular">0439 300 621</span>
           </div>
           <div className="hero-strip-item">
             <span className="k">Office</span>
-            <span className="v">WOTSO Chermside</span>
+            <span className="v">WOTSO Westfield Chermside</span>
           </div>
         </div>
       </div>
@@ -437,7 +437,7 @@ function CTA({ onNavigate }) {
           </h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12, alignItems: 'flex-start' }}>
             <span className="eyebrow">Direct line</span>
-            <a className="h2" style={{ fontFamily: 'var(--serif)', fontWeight: 300, fontSize: 'clamp(28px, 3vw, 40px)' }} href="tel:0480850255">0480 850 255</a>
+            <a className="h2" style={{ fontFamily: 'var(--serif)', fontWeight: 300, fontSize: 'clamp(28px, 3vw, 40px)' }} href="tel:0439300621">0439 300 621</a>
             <div className="cluster" style={{ marginTop: 16 }}>
               <a className="btn primary" onClick={() => onNavigate('apply')}>Apply online <span className="arrow">→</span></a>
               <a className="btn ghost">Email a broker</a>

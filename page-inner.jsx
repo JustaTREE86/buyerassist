@@ -167,7 +167,7 @@ function AboutPage({ onNavigate }) {
                 <img src={PHOTOS.leonie} alt="Leonie" style={{ objectPosition: 'center top' }}/>
               </div>
               <div className="name">Leonie</div>
-              <div className="role">Founder · Principal Broker · ACL 414426</div>
+              <div className="role">Founder · Principal Broker · ACR 564090</div>
             </div>
             <div className="team-card">
               <div className="photo">
@@ -264,7 +264,7 @@ function ApplyPage({ initialLoan, onNavigate }) {
         </div>
         <div style={{ marginTop: 'auto', paddingTop: 32, borderTop: '1px solid var(--line-dark)', display: 'flex', flexDirection: 'column', gap: 6 }}>
           <span className="eyebrow on-dark">Need help?</span>
-          <a href="tel:0480850255" style={{ fontFamily: 'var(--serif)', fontSize: 24, color: 'var(--cream)' }}>0480 850 255</a>
+          <a href="tel:0439300621" style={{ fontFamily: 'var(--serif)', fontSize: 24, color: 'var(--cream)' }}>0439 300 621</a>
         </div>
       </aside>
 

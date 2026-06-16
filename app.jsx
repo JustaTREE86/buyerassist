@@ -99,7 +99,7 @@ function Nav({ current, onNavigate, logoVariant }) {
               ))}
             </div>
             <div className="nav-cta">
-              <a href="tel:0480850255" className="nav-phone tabular nav-phone-desktop">0480 850 255</a>
+              <a href="tel:0439300621" className="nav-phone tabular nav-phone-desktop">0439 300 621</a>
               <a className="btn primary nav-cta-btn" onClick={() => go('apply')}>
                 <span className="nav-cta-text-long">Pre-approval</span>
                 <span className="nav-cta-text-short">Apply</span>
@@ -131,8 +131,8 @@ function Nav({ current, onNavigate, logoVariant }) {
           </div>
           <div className="nav-drawer-foot">
             <span className="eyebrow on-dark"><span className="dot"></span>Speak to a broker</span>
-            <a href="tel:0480850255" className="nav-drawer-phone">0480 850 255</a>
-            <a href="mailto:connect@thebuyerassist.com.au" className="nav-drawer-email">connect@thebuyerassist.com.au</a>
+            <a href="tel:0439300621" className="nav-drawer-phone">0439 300 621</a>
+            <a href="mailto:leonie@thebuyerassist.com.au" className="nav-drawer-email">leonie@thebuyerassist.com.au</a>
           </div>
         </div>
       </div>
@@ -160,8 +160,8 @@ function Footer({ onNavigate, logoVariant }) {
               The Buyer Assist Group · A boutique brokerage operating across Australia from our Brisbane office.
             </p>
             <div style={{ marginTop: 24, fontSize: 13, lineHeight: 1.6, color: 'rgba(245,241,232,0.7)' }}>
-              <div>WOTSO, 395 Hamilton Rd</div>
-              <div>Chermside QLD 4034</div>
+              <div>WOTSO Westfield Chermside</div>
+              <div>Chermside QLD 4032</div>
               <div style={{ marginTop: 12 }}>ABN 63 680 292 399</div>
             </div>
           </div>
@@ -179,8 +179,8 @@ function Footer({ onNavigate, logoVariant }) {
           <div>
             <h5>Connect</h5>
             <div className="footer-links">
-              <a href="tel:0480850255">0480 850 255</a>
-              <a href="mailto:connect@thebuyerassist.com.au">connect@thebuyerassist.com.au</a>
+              <a href="tel:0439300621">0439 300 621</a>
+              <a href="mailto:leonie@thebuyerassist.com.au">leonie@thebuyerassist.com.au</a>
               <a>LinkedIn</a>
               <a>Instagram</a>
             </div>
@@ -188,10 +188,10 @@ function Footer({ onNavigate, logoVariant }) {
           <div>
             <h5>Regulatory</h5>
             <div className="footer-links">
-              <a>Credit Rep. 564090</a>
-              <a>ACL 414426</a>
-              <a>MFAA Member</a>
-              <a>AFCA Resolution</a>
+              <a>ACR 564090</a>
+              <a>ACR 564090</a>
+              <a>FBAA M-358724</a>
+              <a>AFCA 111126</a>
             </div>
           </div>
         </div>
