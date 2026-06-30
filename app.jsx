@@ -181,20 +181,32 @@ function Footer({ onNavigate, logoVariant }) {
             <div className="footer-links">
               <a href="tel:0439300621">0439 300 621</a>
               <a href="mailto:leonie@thebuyerassist.com.au">leonie@thebuyerassist.com.au</a>
-              <a>LinkedIn</a>
-              <a>Instagram</a>
+              {SOCIALS.map(s => (
+                <a key={s.id} href={s.href} target="_blank" rel="noopener noreferrer">{s.label}</a>
+              ))}
+            </div>
+            <div className="footer-social">
+              {SOCIALS.map(s => (
+                <a key={s.id} href={s.href} target="_blank" rel="noopener noreferrer" aria-label={s.label} title={s.label}>
+                  <SocialIcon name={s.id} size={18}/>
+                </a>
+              ))}
             </div>
           </div>
           <div>
             <h5>Regulatory</h5>
             <div className="footer-links">
-              <a>ACR 564090</a>
-              <a>ACR 564090</a>
-              <a>FBAA M-358724</a>
-              <a>AFCA 111126</a>
+              <a>ACN 680 292 399</a>
+              <a>Credit Rep · ACR 564090</a>
+              <a>FBAA · M-358724</a>
+              <a>AFCA · 111126</a>
             </div>
           </div>
         </div>
+
+        <p className="footer-disclaimer">
+          The Buyer Assist Group is a trading name of Cullen Financial Services Pty Ltd (ACN 680 292 399), a Credit Representative (ACR 564090). Member of the Finance Brokers Association of Australia (FBAA M-358724) and the Australian Financial Complaints Authority (AFCA 111126). Any advice on this website is general in nature and does not take your personal circumstances into account. A Credit Guide and Credit Proposal Disclosure are provided before any credit assistance. Quotes and calculator results are indicative only and not an offer of finance. Lending criteria, fees, terms and conditions apply.
+        </p>
 
         <div className="footer-meta">
           <div>© 2026 The Buyer Assist Group. All rights reserved.</div>

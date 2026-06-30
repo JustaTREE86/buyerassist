@@ -1,6 +1,11 @@
 /* global React, PHOTOS, LOANS, Icon, LogoExisting, LogoProposed, LENDERS */
 const { useState: useStateInner } = React;
 
+// Lead delivery: paste a Formspree form endpoint to send applications straight
+// to the inbox (https://formspree.io — free tier). Leave '' and the form still
+// works as a confirmation flow; nothing is lost, it just isn't emailed yet.
+const FORM_ENDPOINT = ''; // e.g. 'https://formspree.io/f/abcdwxyz'
+
 // =============================================================
 // Page header (shared)
 // =============================================================
@@ -232,6 +237,18 @@ function ApplyPage({ initialLoan, onNavigate }) {
   });
 
   const update = (k, v) => setData(d => ({ ...d, [k]: v }));
+  const submitApplication = async () => {
+    if (FORM_ENDPOINT) {
+      try {
+        await fetch(FORM_ENDPOINT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify({ ...data, _subject: 'New website enquiry — The Buyer Assist Group' }),
+        });
+      } catch (e) { /* fail silently — still show the confirmation screen */ }
+    }
+    setStep(3);
+  };
   const steps = [
     { name: 'Loan type' },
     { name: 'Details' },
@@ -350,7 +367,7 @@ function ApplyPage({ initialLoan, onNavigate }) {
             </div>
             <div className="apply-actions">
               <a className="btn link" onClick={() => setStep(1)}>← Back</a>
-              <a className="btn primary" onClick={() => setStep(3)}>Submit <span className="arrow">→</span></a>
+              <a className="btn primary" onClick={submitApplication}>Submit <span className="arrow">→</span></a>
             </div>
           </div>
         )}

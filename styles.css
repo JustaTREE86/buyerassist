@@ -1173,3 +1173,52 @@ h1, h2, h3, h4 { margin: 0; font-family: var(--serif); font-weight: 400; letter-
   .grid-summary { grid-template-columns: 1fr; }
   .grid-summary > *:first-child { border-right: 0; border-bottom: 1px solid var(--line); }
 }
+
+/* =============================================================
+   Production additions — brand logo, socials, accreditations
+   ============================================================= */
+.brand-logo { height: 38px; width: auto; display: block; }
+
+/* Footer social icon row */
+.footer-social { display: flex; gap: 12px; margin-top: 18px; }
+.footer-social a {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 38px; height: 38px; border-radius: 50%;
+  border: 1px solid rgba(245, 241, 232, 0.22);
+  color: rgba(245, 241, 232, 0.78); transition: all 0.2s ease;
+}
+.footer-social a:hover {
+  color: var(--ink); background: var(--gold); border-color: var(--gold);
+  transform: translateY(-2px);
+}
+
+/* Compliance disclaimer */
+.footer-disclaimer {
+  margin-top: 48px; padding-top: 28px;
+  border-top: 1px solid rgba(245, 241, 232, 0.14);
+  max-width: 92ch; font-size: 12px; line-height: 1.7;
+  color: rgba(245, 241, 232, 0.5);
+  font-family: var(--sans, 'Manrope', system-ui, sans-serif);
+}
+
+/* Accreditation badges (placeholders) */
+.accred-row {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px;
+}
+.accred-badge {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 6px; padding: 28px 18px; text-align: center;
+  border: 1px solid var(--line); border-radius: 4px;
+  background: var(--bone);
+}
+.accred-label {
+  font-family: var(--serif, 'Newsreader', serif); font-weight: 400;
+  font-size: 22px; color: var(--ink); letter-spacing: 0.01em;
+}
+.accred-sub {
+  font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--muted);
+}
+@media (max-width: 720px) {
+  .accred-row { grid-template-columns: repeat(2, 1fr); }
+}

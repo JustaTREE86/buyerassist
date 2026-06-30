@@ -362,6 +362,32 @@ function Lenders() {
 }
 
 // =============================================================
+// Accreditations strip (placeholder badges)
+// =============================================================
+function Accreditations() {
+  return (
+    <section className="section paper" style={{ padding: '64px 0', borderTop: '1px solid var(--line)' }}>
+      <div className="container">
+        <div className="eyebrow" style={{ justifyContent: 'center', marginBottom: 28 }}>
+          <span className="dot"></span>Accredited &amp; independent
+        </div>
+        <div className="accred-row">
+          {ACCREDITATIONS.map(a => (
+            <div className="accred-badge" key={a.id}>
+              <span className="accred-label">{a.label}</span>
+              <span className="accred-sub">{a.sub}</span>
+            </div>
+          ))}
+        </div>
+        <p className="body" style={{ textAlign: 'center', marginTop: 24, fontSize: 12, color: 'var(--muted)' }}>
+          Member badges shown as text placeholders — official FBAA, AFCA and lender logos to be added.
+        </p>
+      </div>
+    </section>
+  );
+}
+
+// =============================================================
 // Pillars (Honesty, Transparency, Confidence, Experience)
 // =============================================================
 function Pillars() {
@@ -509,6 +535,7 @@ function HomePage({ heroVariant, palette, onNavigate }) {
       <Calculator />
       <Process onNavigate={onNavigate} />
       <Lenders />
+      <Accreditations />
       <BespokeBlock onNavigate={onNavigate} />
       <Pillars />
       <Feature />
@@ -517,4 +544,4 @@ function HomePage({ heroVariant, palette, onNavigate }) {
 
 }
 
-Object.assign(window, { HomePage, Hero, Products, Calculator, Process, Lenders, BespokeBlock, Pillars, Feature, CTA, LENDERS });
+Object.assign(window, { HomePage, Hero, Products, Calculator, Process, Lenders, Accreditations, BespokeBlock, Pillars, Feature, CTA, LENDERS });

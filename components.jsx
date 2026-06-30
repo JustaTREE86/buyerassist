@@ -23,9 +23,9 @@ const PHOTOS = {
   // Feature blocks
   brisbane: 'https://images.unsplash.com/photo-1566734904496-9309bb1798ae?w=1600&q=80&auto=format&fit=crop',
   client: 'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=1200&q=80&auto=format&fit=crop',
-  leonie: 'photos/leonie.avif', // Principal Broker — Leonie
-  founder: 'photos/leonie.avif',
-  team1: 'photos/leonie.avif',
+  leonie: 'assets/leonie.avif', // Principal Broker — Leonie
+  founder: 'assets/leonie.avif',
+  team1: 'assets/leonie.avif',
   team2: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1000&q=80&auto=format&fit=crop',
   team3: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=1000&q=80&auto=format&fit=crop',
 };
@@ -75,38 +75,55 @@ function Icon({ name, size = 32 }) {
 // =============================================================
 // Logos
 // =============================================================
-function LogoExisting({ light = true }) {
-  // The existing BAG logo — recreated as a stacked monogram
+// Real BAG brand logo (PNG from the official Logo Suite).
+// `light` picks the white mark for dark backgrounds, navy for light ones.
+function BrandLogo({ light = true, size = 'md' }) {
+  const h = size === 'lg' ? 56 : size === 'sm' ? 28 : 38;
+  const src = light ? 'assets/bag-logo-white.png' : 'assets/bag-logo-navy.png';
   return (
-    <div className="logo-existing" style={{ color: light ? 'var(--cream)' : 'var(--ink)' }}>
-      <span className="bag">B</span>
-      <span className="name">
-        Buyer Assist <span className="light">Group</span>
-      </span>
-    </div>
+    <img
+      src={src}
+      alt="The Buyer Assist Group"
+      className="brand-logo"
+      style={{ height: h, width: 'auto', display: 'block' }}
+    />
   );
+}
+// Back-compat aliases — both logo "variants" now render the real brand logo.
+function LogoExisting(props) { return <BrandLogo {...props} />; }
+function LogoProposed(props) { return <BrandLogo {...props} />; }
+
+// =============================================================
+// Social links  (placeholders — swap hrefs when handles confirmed)
+// =============================================================
+const SOCIALS = [
+  { id: 'facebook',  label: 'Facebook',  href: 'https://www.facebook.com/thebuyerassistgroup' },
+  { id: 'instagram', label: 'Instagram', href: 'https://www.instagram.com/thebuyerassistgroup' },
+  { id: 'linkedin',  label: 'LinkedIn',  href: 'https://www.linkedin.com/company/the-buyer-assist-group' },
+];
+
+function SocialIcon({ name, size = 18 }) {
+  const s = { width: size, height: size, fill: 'currentColor' };
+  switch (name) {
+    case 'facebook':
+      return (<svg viewBox="0 0 24 24" {...s}><path d="M22 12a10 10 0 10-11.6 9.9v-7H7.9V12h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.5h-1.2c-1.2 0-1.6.8-1.6 1.6V12h2.7l-.4 2.9h-2.3v7A10 10 0 0022 12z"/></svg>);
+    case 'instagram':
+      return (<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width: size, height: size }}><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>);
+    case 'linkedin':
+      return (<svg viewBox="0 0 24 24" {...s}><path d="M4.98 3.5a2.5 2.5 0 11-.02 5 2.5 2.5 0 01.02-5zM3 9h4v12H3zM10 9h3.8v1.7h.05c.53-1 1.83-2.05 3.77-2.05 4 0 4.75 2.65 4.75 6.1V21H18.6v-5.6c0-1.34-.02-3.06-1.87-3.06-1.87 0-2.16 1.46-2.16 2.96V21H10z"/></svg>);
+    default: return null;
+  }
 }
 
-function LogoProposed({ light = true, size = 'md' }) {
-  // Proposed: a serif monogram inside a circle with a refined ampersand-style mark
-  const dim = size === 'lg' ? 56 : size === 'sm' ? 24 : 32;
-  const fontSize = size === 'lg' ? 30 : size === 'sm' ? 14 : 18;
-  return (
-    <div className="logo-proposed" style={{ color: light ? 'var(--cream)' : 'var(--ink)' }}>
-      <span className="mark" style={{ width: dim, height: dim }}>
-        <svg viewBox="0 0 48 48" width={dim} height={dim} aria-label="BAG mark">
-          <circle cx="24" cy="24" r="23" fill="none" stroke="currentColor" strokeWidth="1"/>
-          <circle cx="24" cy="24" r="19" fill="none" stroke="var(--gold)" strokeWidth="0.6" opacity="0.6"/>
-          <text x="24" y="30" textAnchor="middle" fontFamily="Newsreader, serif" fontStyle="italic" fontWeight="300" fontSize="20" fill="var(--gold)">b</text>
-          <text x="24" y="30" textAnchor="middle" fontFamily="Newsreader, serif" fontStyle="italic" fontWeight="300" fontSize="20" fill="currentColor" opacity="0.0">b</text>
-        </svg>
-      </span>
-      <span className="wordmark" style={{ fontSize }}>
-        Buyer<span className="amp"> · </span>Assist
-      </span>
-    </div>
-  );
-}
+// =============================================================
+// Accreditations  (placeholder badges — real logos to be supplied)
+// =============================================================
+const ACCREDITATIONS = [
+  { id: 'fbaa', label: 'FBAA', sub: 'Member M-358724' },
+  { id: 'afca', label: 'AFCA', sub: 'Member 111126' },
+  { id: 'acr',  label: 'Credit Rep', sub: 'ACR 564090' },
+  { id: 'panel', label: '50+ Lenders', sub: 'Independent panel' },
+];
 
 // =============================================================
 // Format helpers
@@ -123,7 +140,8 @@ function repaymentPerWeek(principal, ratePct, years) {
 
 // Export to other scripts
 Object.assign(window, {
-  PHOTOS, LOANS, Icon, LogoExisting, LogoProposed,
+  PHOTOS, LOANS, Icon, LogoExisting, LogoProposed, BrandLogo,
+  SOCIALS, SocialIcon, ACCREDITATIONS,
   formatMoney, repaymentPerWeek,
   useState, useEffect, useMemo, useRef,
 });
