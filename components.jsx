@@ -21,7 +21,7 @@ const PHOTOS = {
   credit: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=1200&q=80&auto=format&fit=crop',
 
   // Feature blocks
-  brisbane: 'https://images.unsplash.com/photo-1566734904496-9309bb1798ae?w=1600&q=80&auto=format&fit=crop',
+  brisbane: 'https://images.unsplash.com/photo-1756805104140-eade12344ef7?w=1800&q=80&auto=format&fit=crop',
   client: 'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=1200&q=80&auto=format&fit=crop',
   leonie: 'assets/leonie.avif', // Principal Broker — Leonie
   founder: 'assets/leonie.avif',

@@ -936,8 +936,8 @@ h1, h2, h3, h4 { margin: 0; font-family: var(--serif); font-weight: 400; letter-
 /* Hero image blended into the navy */
 .page-head::before {
   content: ""; position: absolute; inset: 0; z-index: 0;
-  background: url('https://images.unsplash.com/photo-1566734904496-9309bb1798ae?w=2000&q=80&auto=format&fit=crop') center / cover no-repeat;
-  opacity: 0.55; mix-blend-mode: luminosity;
+  background: url('https://images.unsplash.com/photo-1756805115188-d72c077932fb?w=2000&q=80&auto=format&fit=crop') center / cover no-repeat;
+  opacity: 0.6; mix-blend-mode: luminosity;
 }
 /* Navy gradient over the image — darker on the text side for legibility */
 .page-head::after {
