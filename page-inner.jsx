@@ -9,9 +9,10 @@ const FORM_ENDPOINT = ''; // e.g. 'https://formspree.io/f/abcdwxyz'
 // =============================================================
 // Page header (shared)
 // =============================================================
-function PageHead({ eyebrow, title, meta }) {
+function PageHead({ eyebrow, title, meta, image }) {
+  const style = image ? { '--head-img': `url('${image}')` } : undefined;
   return (
-    <section className="page-head">
+    <section className="page-head" style={style}>
       <div className="container">
         <div className="head-grid">
           <div>
@@ -35,6 +36,7 @@ function ServicesPage({ onNavigate }) {
         eyebrow="Loan products · 01 / 04"
         title="Bespoke finance,<br/>matched <em style='font-style:italic;color:var(--gold)'>to the asset.</em>"
         meta="We finance seven categories with the same boutique attention. No call-centre scripts, no panel-fit-the-customer. We start from your situation and work outward."
+        image="https://images.unsplash.com/photo-1756805104140-eade12344ef7?w=2000&q=80&auto=format&fit=crop"
       />
       <section className="section paper">
         <div className="container">
@@ -96,6 +98,7 @@ function AboutPage({ onNavigate }) {
         eyebrow="About · 02 / 04"
         title="A bespoke practice,<br/>built on a <em style='font-style:italic;color:var(--gold)'>handshake.</em>"
         meta="Founded in Brisbane and led by Leonie, our Director. A boutique team by design. We're the brokerage you call when you're tired of being a customer number."
+        image="https://images.unsplash.com/photo-1756805115188-d72c077932fb?w=2000&q=80&auto=format&fit=crop"
       />
 
       {/* Founders / story */}
