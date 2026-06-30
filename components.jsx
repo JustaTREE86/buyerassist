@@ -136,22 +136,26 @@ const CONTACT = {
 // =============================================================
 // Floating quick-contact stack  (follows the user down the page)
 // =============================================================
-function FloatingActions({ onNavigate }) {
+function FloatingActions() {
+  const [open, setOpen] = useState(false);
   const waHref = `https://wa.me/${CONTACT.whatsapp}?text=${encodeURIComponent(CONTACT.whatsappMsg)}`;
   return (
-    <div className="fab-stack" role="group" aria-label="Quick contact">
-      <a className="fab fab-whatsapp" href={waHref} target="_blank" rel="noopener noreferrer" aria-label="Message us on WhatsApp">
-        <SocialIcon name="whatsapp" size={28}/>
+    <div className={`fab-stack ${open ? 'open' : ''}`} role="group" aria-label="Quick contact">
+      <a className="fab fab-action fab-whatsapp" href={waHref} target="_blank" rel="noopener noreferrer" aria-label="Message us on WhatsApp" tabIndex={open ? 0 : -1}>
+        <SocialIcon name="whatsapp" size={26}/>
         <span className="fab-tip">WhatsApp</span>
       </a>
-      <a className="fab fab-call" href={`tel:${CONTACT.phoneTel}`} aria-label="Call now">
-        <Icon name="phone" size={24}/>
+      <a className="fab fab-action fab-call" href={`tel:${CONTACT.phoneTel}`} aria-label="Call now" tabIndex={open ? 0 : -1}>
+        <Icon name="phone" size={22}/>
         <span className="fab-tip">Call now</span>
       </a>
-      <a className="fab fab-chat" href={CONTACT.messenger} target="_blank" rel="noopener noreferrer" aria-label="Chat on Facebook Messenger">
-        <Icon name="chat" size={24}/>
-        <span className="fab-tip">Chat</span>
+      <a className="fab fab-action fab-chat" href={CONTACT.messenger} target="_blank" rel="noopener noreferrer" aria-label="Chat on Facebook Messenger" tabIndex={open ? 0 : -1}>
+        <SocialIcon name="facebook" size={24}/>
+        <span className="fab-tip">Messenger</span>
       </a>
+      <button className={`fab fab-toggle ${open ? 'is-open' : ''}`} onClick={() => setOpen(v => !v)} aria-expanded={open} aria-label={open ? 'Close contact menu' : 'Contact us'}>
+        {open ? <span className="fab-close">✕</span> : <Icon name="chat" size={26}/>}
+      </button>
     </div>
   );
 }

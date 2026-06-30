@@ -1224,31 +1224,49 @@ h1, h2, h3, h4 { margin: 0; font-family: var(--serif); font-weight: 400; letter-
 }
 
 /* =============================================================
-   Floating quick-contact stack (fixed, follows scroll)
+   Floating contact button — single FAB that expands on tap
    ============================================================= */
 .fab-stack {
   position: fixed; right: 20px; bottom: 20px; z-index: 1000;
-  display: flex; flex-direction: column; gap: 14px; align-items: flex-end;
+  display: flex; flex-direction: column; gap: 12px; align-items: flex-end;
+  pointer-events: none; /* wrapper ignores clicks; only the buttons catch them */
 }
+.fab-toggle { pointer-events: auto; }
 .fab {
   position: relative; display: inline-flex; align-items: center; justify-content: center;
-  width: 56px; height: 56px; border-radius: 50%; border: 0; cursor: pointer;
-  color: #fff; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.28);
-  transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+  border-radius: 50%; border: 0; cursor: pointer; color: #fff;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.24);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, opacity 0.22s ease;
   -webkit-tap-highlight-color: transparent;
 }
-.fab:hover { transform: translateY(-3px) scale(1.04); box-shadow: 0 10px 28px rgba(0, 0, 0, 0.34); }
 .fab svg { display: block; }
-.fab-whatsapp { background: #25D366; }
-.fab-call { background: var(--gold); color: var(--ink); animation: fab-pulse 2.4s ease-out infinite; }
-.fab-chat { background: var(--ink); color: var(--cream); }
 
-/* Pulse ring on the primary call action */
-@keyframes fab-pulse {
-  0% { box-shadow: 0 6px 20px rgba(0,0,0,0.28), 0 0 0 0 rgba(200, 166, 90, 0.55); }
-  70% { box-shadow: 0 6px 20px rgba(0,0,0,0.28), 0 0 0 14px rgba(200, 166, 90, 0); }
-  100% { box-shadow: 0 6px 20px rgba(0,0,0,0.28), 0 0 0 0 rgba(200, 166, 90, 0); }
+/* Main toggle button (the only thing visible when collapsed) */
+.fab-toggle {
+  width: 56px; height: 56px; background: var(--ink); color: var(--cream); order: 2;
 }
+.fab-toggle:hover { transform: scale(1.05); box-shadow: 0 10px 28px rgba(0, 0, 0, 0.32); }
+.fab-toggle.is-open { background: var(--gold); color: var(--ink); }
+.fab-close { font-size: 20px; line-height: 1; }
+
+/* Sub-actions: hidden until open */
+.fab-action {
+  width: 50px; height: 50px; order: 1;
+  opacity: 0; visibility: hidden; pointer-events: none;
+  transform: translateY(14px) scale(0.6); transform-origin: center;
+}
+.fab-stack.open .fab-action {
+  opacity: 1; visibility: visible; pointer-events: auto;
+  transform: translateY(0) scale(1);
+}
+.fab-stack.open .fab-chat     { transition-delay: 0.04s; }
+.fab-stack.open .fab-call     { transition-delay: 0.08s; }
+.fab-stack.open .fab-whatsapp { transition-delay: 0.12s; }
+.fab-action:hover { transform: translateY(-2px) scale(1.06); }
+
+.fab-whatsapp { background: #25D366; }
+.fab-call { background: var(--gold); color: var(--ink); }
+.fab-chat { background: #0866FF; color: #fff; }
 
 /* Hover label that slides out to the left */
 .fab-tip {
@@ -1257,13 +1275,14 @@ h1, h2, h3, h4 { margin: 0; font-family: var(--serif); font-weight: 400; letter-
   font-family: var(--sans, 'Manrope', system-ui, sans-serif);
   font-size: 12px; font-weight: 600; letter-spacing: 0.04em;
   padding: 7px 12px; border-radius: 8px; pointer-events: none;
-  opacity: 0; transition: opacity 0.18s ease, transform 0.18s ease;
+  opacity: 0; transition: opacity 0.18s ease;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
 }
-.fab:hover .fab-tip, .fab:focus-visible .fab-tip { opacity: 1; transform: translateY(-50%) translateX(0); }
+.fab-action:hover .fab-tip { opacity: 1; }
 
 @media (max-width: 600px) {
-  .fab-stack { right: 14px; bottom: 14px; gap: 12px; }
-  .fab { width: 50px; height: 50px; }
+  .fab-stack { right: 14px; bottom: 14px; }
+  .fab-toggle { width: 52px; height: 52px; }
+  .fab-action { width: 46px; height: 46px; }
   .fab-tip { display: none; }
 }
