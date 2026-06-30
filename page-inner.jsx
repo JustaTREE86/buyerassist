@@ -95,7 +95,7 @@ function AboutPage({ onNavigate }) {
       <PageHead
         eyebrow="About · 02 / 04"
         title="A bespoke practice,<br/>built on a <em style='font-style:italic;color:var(--gold)'>handshake.</em>"
-        meta="Founded in Brisbane by Leonie. Boutique by design. We're the brokerage you call when you're tired of being a customer number."
+        meta="Founded in Brisbane and led by Leonie, our Director. A boutique team by design. We're the brokerage you call when you're tired of being a customer number."
       />
 
       {/* Founders / story */}
@@ -103,20 +103,20 @@ function AboutPage({ onNavigate }) {
         <div className="container">
           <div className="feature flip">
             <div className="feature-media" style={{ aspectRatio: '4 / 5' }}>
-              <img src={PHOTOS.leonie} alt="Leonie — Founder, Principal Broker" style={{ objectPosition: 'center top' }}/>
+              <img src={PHOTOS.leonie} alt="Leonie, Director, The Buyer Assist Group" style={{ objectPosition: 'center top' }}/>
             </div>
             <div className="feature-copy">
-              <div className="eyebrow"><span className="dot"></span>Founder's note · Leonie</div>
+              <div className="eyebrow"><span className="dot"></span>From the Director · Leonie</div>
               <h2 className="h2">"I left the bank because nobody was being told the <em style={{fontStyle:'italic', color:'var(--gold-2)'}}>truth.</em>"</h2>
               <p className="body" style={{ fontSize: 17 }}>
-                The Buyer Assist Group started with one belief: that everyone — the young couple buying their first car, the dentist financing a new chair, the cafe owner growing into a second shopfront — deserves a broker who reads their file like it's the only file that day.
+                The Buyer Assist Group started with one belief: that everyone, the young couple buying their first car, the dentist financing a new chair, the cafe owner growing into a second shopfront, deserves a team who reads their file like it's the only file that day.
               </p>
               <p className="body" style={{ fontSize: 17 }}>
                 Bespoke isn't a buzzword for us. It's the entire posture. We're small on purpose. We answer our own phones. We say no when no is the right answer. And when yes is on the table, we negotiate until it's the best yes available.
               </p>
               <div className="cluster" style={{ marginTop: 8 }}>
                 <span style={{ fontFamily: 'var(--serif)', fontStyle: 'italic', fontSize: 22, color: 'var(--gold-2)' }}>— Leonie</span>
-                <span style={{ fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--muted)', marginLeft: 12 }}>Founder · Principal Broker</span>
+                <span style={{ fontSize: 11, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--muted)', marginLeft: 12 }}>Director · The Buyer Assist Group</span>
               </div>
             </div>
           </div>
@@ -168,11 +168,11 @@ function AboutPage({ onNavigate }) {
           <div className="team-grid">
             <div className="team-card">
               <div className="photo">
-                <span className="tag">Principal Broker</span>
+                <span className="tag">Director</span>
                 <img src={PHOTOS.leonie} alt="Leonie" style={{ objectPosition: 'center top' }}/>
               </div>
               <div className="name">Leonie</div>
-              <div className="role">Founder · Principal Broker · ACR 564090</div>
+              <div className="role">Director · The Buyer Assist Group</div>
             </div>
             <div className="team-card">
               <div className="photo">
@@ -281,7 +281,7 @@ function ApplyPage({ initialLoan, onNavigate }) {
         </div>
         <div style={{ marginTop: 'auto', paddingTop: 32, borderTop: '1px solid var(--line-dark)', display: 'flex', flexDirection: 'column', gap: 6 }}>
           <span className="eyebrow on-dark">Need help?</span>
-          <a href="tel:0439300621" style={{ fontFamily: 'var(--serif)', fontSize: 24, color: 'var(--cream)' }}>0439 300 621</a>
+          <a href="tel:0480850255" style={{ fontFamily: 'var(--serif)', fontSize: 24, color: 'var(--cream)' }}>0480 850 255</a>
         </div>
       </aside>
 

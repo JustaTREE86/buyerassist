@@ -99,7 +99,7 @@ function Nav({ current, onNavigate, logoVariant }) {
               ))}
             </div>
             <div className="nav-cta">
-              <a href="tel:0439300621" className="nav-phone tabular nav-phone-desktop">0439 300 621</a>
+              <a href="tel:0480850255" className="nav-phone tabular nav-phone-desktop">0480 850 255</a>
               <a className="btn primary nav-cta-btn" onClick={() => go('apply')}>
                 <span className="nav-cta-text-long">Pre-approval</span>
                 <span className="nav-cta-text-short">Apply</span>
@@ -131,8 +131,8 @@ function Nav({ current, onNavigate, logoVariant }) {
           </div>
           <div className="nav-drawer-foot">
             <span className="eyebrow on-dark"><span className="dot"></span>Speak to a broker</span>
-            <a href="tel:0439300621" className="nav-drawer-phone">0439 300 621</a>
-            <a href="mailto:leonie@thebuyerassist.com.au" className="nav-drawer-email">leonie@thebuyerassist.com.au</a>
+            <a href="tel:0480850255" className="nav-drawer-phone">0480 850 255</a>
+            <a href="mailto:connect@thebuyerassist.com.au" className="nav-drawer-email">connect@thebuyerassist.com.au</a>
           </div>
         </div>
       </div>
@@ -160,8 +160,8 @@ function Footer({ onNavigate, logoVariant }) {
               The Buyer Assist Group · A boutique brokerage operating across Australia from our Brisbane office.
             </p>
             <div style={{ marginTop: 24, fontSize: 13, lineHeight: 1.6, color: 'rgba(245,241,232,0.7)' }}>
-              <div>WOTSO Westfield Chermside</div>
-              <div>Chermside QLD 4032</div>
+              <div>WOTSO, 395 Hamilton Rd</div>
+              <div>Chermside QLD 4034</div>
               <div style={{ marginTop: 12 }}>ABN 63 680 292 399</div>
             </div>
           </div>
@@ -179,8 +179,8 @@ function Footer({ onNavigate, logoVariant }) {
           <div>
             <h5>Connect</h5>
             <div className="footer-links">
-              <a href="tel:0439300621">0439 300 621</a>
-              <a href="mailto:leonie@thebuyerassist.com.au">leonie@thebuyerassist.com.au</a>
+              <a href="tel:0480850255">0480 850 255</a>
+              <a href="mailto:connect@thebuyerassist.com.au">connect@thebuyerassist.com.au</a>
               {SOCIALS.map(s => (
                 <a key={s.id} href={s.href} target="_blank" rel="noopener noreferrer">{s.label}</a>
               ))}
@@ -196,8 +196,8 @@ function Footer({ onNavigate, logoVariant }) {
           <div>
             <h5>Regulatory</h5>
             <div className="footer-links">
-              <a>ACN 680 292 399</a>
-              <a>Credit Rep · ACR 564090</a>
+              <a>Credit Rep · 564090</a>
+              <a>Australian Credit Licence · 414426</a>
               <a>FBAA · M-358724</a>
               <a>AFCA · 111126</a>
             </div>
@@ -205,11 +205,11 @@ function Footer({ onNavigate, logoVariant }) {
         </div>
 
         <p className="footer-disclaimer">
-          The Buyer Assist Group is a trading name of Cullen Financial Services Pty Ltd (ACN 680 292 399), a Credit Representative (ACR 564090). Member of the Finance Brokers Association of Australia (FBAA M-358724) and the Australian Financial Complaints Authority (AFCA 111126). Any advice on this website is general in nature and does not take your personal circumstances into account. A Credit Guide and Credit Proposal Disclosure are provided before any credit assistance. Quotes and calculator results are indicative only and not an offer of finance. Lending criteria, fees, terms and conditions apply.
+          The Buyer Assist Group is a trading name of Cullen Financial Services Pty Ltd (ABN 63 680 292 399). Credit Representative 564090 is authorised under Australian Credit Licence 414426. Member of the Finance Brokers Association of Australia (FBAA M-358724) and the Australian Financial Complaints Authority (AFCA 111126). Any advice on this website is general in nature and does not take your personal circumstances into account. A Credit Guide and Credit Proposal Disclosure are provided before any credit assistance. Quotes and calculator results are indicative only and not an offer of finance. Lending criteria, fees, terms and conditions apply.
         </p>
 
         <div className="footer-meta">
-          <div>© 2026 The Buyer Assist Group. All rights reserved.</div>
+          <div>© 2025 The Buyer Assist Group. All rights reserved.</div>
           <div className="credit">
             Site concept by <span style={{ borderBottom: '1px solid var(--gold)' }}>Broken Mind Software</span>
           </div>
@@ -253,6 +253,7 @@ function App() {
     return (
       <>
         <ApplyPage initialLoan={pageState.loan} onNavigate={onNavigate} />
+        <FloatingActions onNavigate={onNavigate}/>
         <TweaksControls t={t} setTweak={setTweak}/>
       </>
     );
@@ -265,6 +266,7 @@ function App() {
       {page === 'services' && <ServicesPage onNavigate={onNavigate}/>}
       {page === 'about' && <AboutPage onNavigate={onNavigate}/>}
       <Footer onNavigate={onNavigate} logoVariant={t.logoVariant}/>
+      <FloatingActions onNavigate={onNavigate}/>
       <TweaksControls t={t} setTweak={setTweak}/>
     </>
   );

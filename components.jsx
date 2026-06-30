@@ -68,6 +68,8 @@ function Icon({ name, size = 32 }) {
       return (<svg viewBox={v} {...s}><path d="M22 21v3a2 2 0 01-2 2A18 18 0 014 10a2 2 0 012-2h3a2 2 0 012 1.7c.1.9.3 1.8.6 2.7a2 2 0 01-.5 2L10 16a14 14 0 006 6l1.6-1.1a2 2 0 012-.5c.9.3 1.8.5 2.7.6A2 2 0 0122 21z"/></svg>);
     case 'arrow':
       return (<svg viewBox={v} {...s}><path d="M5 16h22M19 8l8 8-8 8"/></svg>);
+    case 'chat':
+      return (<svg viewBox={v} {...s}><path d="M27 18a3 3 0 01-3 3H12l-6 5V8a3 3 0 013-3h15a3 3 0 013 3v10z"/><path d="M11 13h10M11 17h6"/></svg>);
     default: return null;
   }
 }
@@ -111,8 +113,46 @@ function SocialIcon({ name, size = 18 }) {
       return (<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width: size, height: size }}><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>);
     case 'linkedin':
       return (<svg viewBox="0 0 24 24" {...s}><path d="M4.98 3.5a2.5 2.5 0 11-.02 5 2.5 2.5 0 01.02-5zM3 9h4v12H3zM10 9h3.8v1.7h.05c.53-1 1.83-2.05 3.77-2.05 4 0 4.75 2.65 4.75 6.1V21H18.6v-5.6c0-1.34-.02-3.06-1.87-3.06-1.87 0-2.16 1.46-2.16 2.96V21H10z"/></svg>);
+    case 'whatsapp':
+      return (<svg viewBox="0 0 24 24" {...s}><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38c1.45.79 3.08 1.21 4.79 1.21 5.46 0 9.91-4.45 9.91-9.91S17.5 2 12.04 2zm5.8 14.04c-.24.68-1.42 1.32-1.95 1.37-.5.05-1.13.07-1.82-.11-.42-.13-.96-.31-1.65-.61-2.9-1.25-4.79-4.17-4.94-4.36-.14-.19-1.18-1.57-1.18-3 0-1.42.75-2.12 1.01-2.41.27-.29.58-.36.78-.36.19 0 .39 0 .56.01.18.01.42-.07.66.5.24.59.83 2.04.9 2.19.07.14.12.31.02.5-.09.19-.14.31-.28.48-.14.17-.29.37-.42.5-.14.14-.28.29-.12.57.16.28.71 1.17 1.52 1.9 1.05.93 1.93 1.22 2.21 1.36.28.14.44.12.6-.07.16-.19.69-.81.88-1.08.18-.28.37-.23.62-.14.25.09 1.6.76 1.87.9.28.14.46.21.53.32.07.12.07.66-.17 1.33z"/></svg>);
     default: return null;
   }
+}
+
+// =============================================================
+// Contact details  (single source of truth)
+// =============================================================
+const CONTACT = {
+  phoneDisplay: '0480 850 255',
+  phoneTel: '+61480850255',
+  whatsapp: '61480850255',          // E.164 without '+'
+  whatsappMsg: "Hi, I'd like to enquire about finance with The Buyer Assist Group.",
+  email: 'connect@thebuyerassist.com.au',
+  addressLine1: 'WOTSO, 395 Hamilton Rd',
+  addressLine2: 'Chermside QLD 4034',
+};
+
+// =============================================================
+// Floating quick-contact stack  (follows the user down the page)
+// =============================================================
+function FloatingActions({ onNavigate }) {
+  const waHref = `https://wa.me/${CONTACT.whatsapp}?text=${encodeURIComponent(CONTACT.whatsappMsg)}`;
+  return (
+    <div className="fab-stack" role="group" aria-label="Quick contact">
+      <a className="fab fab-whatsapp" href={waHref} target="_blank" rel="noopener noreferrer" aria-label="Message us on WhatsApp">
+        <SocialIcon name="whatsapp" size={28}/>
+        <span className="fab-tip">WhatsApp</span>
+      </a>
+      <a className="fab fab-call" href={`tel:${CONTACT.phoneTel}`} aria-label="Call now">
+        <Icon name="phone" size={24}/>
+        <span className="fab-tip">Call now</span>
+      </a>
+      <button className="fab fab-chat" onClick={() => onNavigate && onNavigate('apply')} aria-label="Start an enquiry">
+        <Icon name="chat" size={24}/>
+        <span className="fab-tip">Chat</span>
+      </button>
+    </div>
+  );
 }
 
 // =============================================================
@@ -141,7 +181,7 @@ function repaymentPerWeek(principal, ratePct, years) {
 // Export to other scripts
 Object.assign(window, {
   PHOTOS, LOANS, Icon, LogoExisting, LogoProposed, BrandLogo,
-  SOCIALS, SocialIcon, ACCREDITATIONS,
+  SOCIALS, SocialIcon, ACCREDITATIONS, CONTACT, FloatingActions,
   formatMoney, repaymentPerWeek,
   useState, useEffect, useMemo, useRef,
 });

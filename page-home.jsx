@@ -21,11 +21,11 @@ function Hero({ variant, palette, onNavigate }) {
                 well.
               </h1>
               <p className="hero-sub">
-                A boutique brokerage, founded in Brisbane, advising individuals and small business owners across Australia. One broker. Fifty-plus lenders. A loan tailored to you — not to a panel.
+                A boutique brokerage, founded in Brisbane, advising individuals and small business owners across Australia. A dedicated team. Fifty-plus lenders. A loan tailored to you, not to a panel.
               </p>
               <div className="hero-cta">
                 <a className="btn primary" onClick={() => onNavigate('apply')}>Begin your application <span className="arrow">→</span></a>
-                <a className="btn ghost" onClick={() => onNavigate('about')}>Meet Leonie</a>
+                <a className="btn ghost" onClick={() => onNavigate('about')}>Meet the team</a>
               </div>
             </div>
             <div className="pt-photo">
@@ -35,9 +35,9 @@ function Hero({ variant, palette, onNavigate }) {
                 <span className="yr">MMXIX</span>
                 <span>Brisbane · QLD</span>
               </span>
-              <img src={PHOTOS.leonie} alt="Leonie — Principal Broker"/>
+              <img src={PHOTOS.leonie} alt="Leonie, Director, The Buyer Assist Group"/>
               <div className="pt-caption">
-                <span className="role">Principal Broker · ACR 564090</span>
+                <span className="role">Director · The Buyer Assist Group</span>
                 <span className="who">Leonie</span>
               </div>
             </div>
@@ -62,7 +62,7 @@ function Hero({ variant, palette, onNavigate }) {
             done well.
           </h1>
           <p className="hero-sub" style={{ maxWidth: 520, marginTop: 32 }}>
-            A boutique brokerage for individuals and SMEs. Fifty-plus lenders, one discreet point of contact, and the honesty to tell you when the answer is no.
+            A boutique brokerage for individuals and SMEs. Fifty-plus lenders, a dedicated team behind your file, and the honesty to tell you when the answer is no.
           </p>
           <div className="hero-cta">
             <a className="btn primary" onClick={() => onNavigate('apply')}>Start an application <span className="arrow">→</span></a>
@@ -88,7 +88,7 @@ function Hero({ variant, palette, onNavigate }) {
                 The shortest line<br />between you<br />and <em>yes.</em>
               </h1>
               <p className="hero-sub">
-                Cars, caravans, commercial fit-outs, medical kit, the next van for the business — financed through 50+ lenders and one trusted broker.
+                Cars, caravans, commercial fit-outs, medical kit, the next van for the business, financed through 50+ lenders and a team you can trust.
               </p>
               <div className="hero-cta">
                 <a className="btn primary" onClick={() => onNavigate('apply')}>Get pre-approved <span className="arrow">→</span></a>
@@ -156,16 +156,16 @@ function HeroStrip() {
             <span className="v tabular">564090</span>
           </div>
           <div className="hero-strip-item">
-            <span className="k">ACR</span>
-            <span className="v tabular">564090</span>
+            <span className="k">Aust. Credit Licence</span>
+            <span className="v tabular">414426</span>
           </div>
           <div className="hero-strip-item">
-            <span className="k">Speak to a broker</span>
-            <span className="v tabular">0439 300 621</span>
+            <span className="k">Speak to the team</span>
+            <span className="v tabular">0480 850 255</span>
           </div>
           <div className="hero-strip-item">
             <span className="k">Office</span>
-            <span className="v">WOTSO Westfield Chermside</span>
+            <span className="v">WOTSO, Chermside QLD</span>
           </div>
         </div>
       </div>
@@ -463,7 +463,7 @@ function CTA({ onNavigate }) {
           </h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12, alignItems: 'flex-start' }}>
             <span className="eyebrow">Direct line</span>
-            <a className="h2" style={{ fontFamily: 'var(--serif)', fontWeight: 300, fontSize: 'clamp(28px, 3vw, 40px)' }} href="tel:0439300621">0439 300 621</a>
+            <a className="h2" style={{ fontFamily: 'var(--serif)', fontWeight: 300, fontSize: 'clamp(28px, 3vw, 40px)' }} href="tel:0480850255">0480 850 255</a>
             <div className="cluster" style={{ marginTop: 16 }}>
               <a className="btn primary" onClick={() => onNavigate('apply')}>Apply online <span className="arrow">→</span></a>
               <a className="btn ghost">Email a broker</a>
@@ -498,8 +498,8 @@ function BespokeBlock({ onNavigate }) {
             <span className="bb-pron">/ b<span style={{ fontStyle: 'normal' }}>ɪ</span>ˈspoʊk /</span>
           </header>
           <div className="bb-media">
-            <span className="bb-stamp">Leonie · Principal Broker</span>
-            <img src={PHOTOS.leonie} alt="Leonie — Principal Broker, The Buyer Assist Group" />
+            <span className="bb-stamp">Leonie · Director</span>
+            <img src={PHOTOS.leonie} alt="Leonie, Director, The Buyer Assist Group" />
           </div>
           <div className="bb-copy">
             <div className="bb-def">
@@ -508,12 +508,12 @@ function BespokeBlock({ onNavigate }) {
               </p>
             </div>
             <p className="body" style={{ fontSize: 16, lineHeight: 1.6, maxWidth: '44ch' }}>
-              We've spent years being told finance is a numbers game. It isn't. It's a story game — and the broker who reads your file the most carefully wins the best rate. That's the entire job, done quietly, file by file.
+              We've spent years being told finance is a numbers game. It isn't. It's a story game, and the team that reads your file the most carefully wins the best rate. That's the entire job, done quietly, file by file.
             </p>
             <div className="bb-signature">
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                 <span className="sig-name">— Leonie</span>
-                <span className="sig-role">Founder · Principal Broker</span>
+                <span className="sig-role">Director · The Buyer Assist Group</span>
               </div>
               <a className="btn link" style={{ marginLeft: 'auto' }} onClick={() => onNavigate('about')}>Read our story →</a>
             </div>
