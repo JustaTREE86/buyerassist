@@ -128,6 +128,7 @@ const CONTACT = {
   whatsapp: '61480850255',          // E.164 without '+'
   whatsappMsg: "Hi, I'd like to enquire about finance with The Buyer Assist Group.",
   email: 'connect@thebuyerassist.com.au',
+  messenger: 'https://m.me/thebuyerassistgroup',   // TODO: confirm Facebook Page username
   addressLine1: 'WOTSO, 395 Hamilton Rd',
   addressLine2: 'Chermside QLD 4034',
 };
@@ -147,10 +148,10 @@ function FloatingActions({ onNavigate }) {
         <Icon name="phone" size={24}/>
         <span className="fab-tip">Call now</span>
       </a>
-      <button className="fab fab-chat" onClick={() => onNavigate && onNavigate('apply')} aria-label="Start an enquiry">
+      <a className="fab fab-chat" href={CONTACT.messenger} target="_blank" rel="noopener noreferrer" aria-label="Chat on Facebook Messenger">
         <Icon name="chat" size={24}/>
         <span className="fab-tip">Chat</span>
-      </button>
+      </a>
     </div>
   );
 }
