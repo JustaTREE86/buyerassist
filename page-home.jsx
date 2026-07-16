@@ -1,5 +1,9 @@
-/* global React, PHOTOS, LOANS, Icon, LogoExisting, LogoProposed, formatMoney, repaymentPerWeek */
-const { useState: useStateHome, useMemo: useMemoHome, useRef: useRefHome, useEffect: useEffectHome } = React;
+/* global React, PHOTOS, LOANS, Icon, LogoExisting, LogoProposed, formatMoney, repaymentPerWeek, SocialIcon */
+const { useState: useStateHome, useMemo: useMemoHome, useEffect: useEffectHome } = React;
+
+// Set a Formspree endpoint to receive partner enquiries by email:
+// https://formspree.io — free tier. Leave '' to use mailto fallback.
+const PARTNER_FORM_ENDPOINT = '';
 
 // =============================================================
 // Hero (3 variants)
@@ -13,7 +17,7 @@ function Hero({ variant, palette, onNavigate }) {
         <div className="container hero-inner">
           <div className="portrait-grid">
             <div className="pt-copy">
-              <div className="eyebrow"><span className="dot"></span>Bespoke loan solutions · Est. 2019</div>
+              <div className="eyebrow"><span className="dot"></span>Bespoke loan solutions · Australia-wide</div>
               <h1 className="display">
                 <em>Bespoke</em><br />
                 finance,<br />
@@ -31,10 +35,6 @@ function Hero({ variant, palette, onNavigate }) {
             <div className="pt-photo">
               <span className="pt-corner"></span>
               <span className="pt-corner br"></span>
-              <span className="pt-stamp">
-                <span className="yr">MMXIX</span>
-                <span>Brisbane · QLD</span>
-              </span>
               <img src={PHOTOS.leonie} alt="Leonie, Director, The Buyer Assist Group"/>
               <div className="pt-caption">
                 <span className="role">Director · The Buyer Assist Group</span>
@@ -111,7 +111,7 @@ function Hero({ variant, palette, onNavigate }) {
       <div className="container hero-inner">
         <div className="hero-grid">
           <div>
-            <div className="eyebrow on-dark"><span className="dot"></span>Bespoke loan solutions · est. 2019</div>
+            <div className="eyebrow on-dark"><span className="dot"></span>Bespoke loan solutions · Australia-wide</div>
             <h1 className="display" style={{ marginTop: 24 }}>
               Finance<br />
               built around<br />
@@ -147,30 +147,27 @@ function Hero({ variant, palette, onNavigate }) {
 }
 
 function HeroStrip() {
+  const vals = [
+    { n: 'i.', word: 'Honesty', copy: 'A "no" from us is more useful than a slow "yes" from anyone else.' },
+    { n: 'ii.', word: 'Transparency', copy: 'Every commission, every fee, every reason — on the same page as the rate.' },
+    { n: 'iii.', word: 'Confidence', copy: 'We\'ve placed thousands of files. We know who says yes and why.' },
+    { n: 'iv.', word: 'Experience', copy: 'Decades across asset, commercial, and the niches that need attention.' },
+  ];
   return (
-    <div className="hero-strip">
+    <div className="hero-values">
       <div className="container">
-        <div className="hero-strip-inner">
-          <div className="hero-strip-item">
-            <span className="k">Credit Rep.</span>
-            <span className="v tabular">564090</span>
-          </div>
-          <div className="hero-strip-item">
-            <span className="k">Aust. Credit Licence</span>
-            <span className="v tabular">414426</span>
-          </div>
-          <div className="hero-strip-item">
-            <span className="k">Speak to the team</span>
-            <span className="v tabular">0480 850 255</span>
-          </div>
-          <div className="hero-strip-item">
-            <span className="k">Office</span>
-            <span className="v">WOTSO, Chermside QLD</span>
-          </div>
+        <div className="hero-values-grid">
+          {vals.map(v => (
+            <div className="hero-value" key={v.word}>
+              <span className="hv-roman">{v.n}</span>
+              <span className="hv-word">{v.word}</span>
+              <p className="hv-copy">{v.copy}</p>
+            </div>
+          ))}
         </div>
       </div>
-    </div>);
-
+    </div>
+  );
 }
 
 // =============================================================
@@ -184,7 +181,7 @@ function Products({ onNavigate }) {
           <div style={{ maxWidth: 720 }}>
             <div className="eyebrow"><span className="dot"></span>What we finance</div>
             <h2 className="h1" style={{ marginTop: 16 }}>
-              Seven products.<br />One <em style={{ fontStyle: 'italic', color: 'var(--gold-2)' }}>honest</em> conversation.
+              Eight products.<br />One <em style={{ fontStyle: 'italic', color: 'var(--gold-2)' }}>honest</em> conversation.
             </h2>
           </div>
           <p className="lede" style={{ maxWidth: 460, color: 'var(--muted)' }}>
@@ -194,18 +191,21 @@ function Products({ onNavigate }) {
       </div>
       <div className="container">
         <div className="products-grid">
-          {LOANS.map((loan) =>
-          <div className="product" key={loan.id} onClick={() => onNavigate('apply', { loan: loan.id })}>
+          {LOANS.map((loan) => {
+            const isCredit = loan.id === 'credit';
+            return (
+            <div className="product" key={loan.id} onClick={() => isCredit ? onNavigate('credit-repair') : onNavigate('apply', { loan: loan.id })}>
               <div className="icon"><Icon name={loan.icon} size={36} /></div>
               <span className="num">{loan.roman}</span>
               <h3 className="name">{loan.name}</h3>
               <p className="desc">{loan.desc}</p>
-              <span className="arrow">Apply</span>
+              <span className="arrow">{isCredit ? 'Learn more' : 'Apply'}</span>
             </div>
-          )}
+            );
+          })}
           <div className="product" style={{ background: 'var(--ink)', color: 'var(--cream)' }} onClick={() => onNavigate('apply')}>
             <div className="icon" style={{ color: 'var(--gold)' }}><Icon name="arrow" size={36} /></div>
-            <span className="num" style={{ color: 'var(--gold-soft)' }}>VIII</span>
+            <span className="num" style={{ color: 'var(--gold-soft)' }}>IX</span>
             <h3 className="name">Not sure where you fit?</h3>
             <p className="desc" style={{ color: 'rgba(245,241,232,0.72)' }}>Tell us what you're after in plain English. We'll figure out the right product — that's the job.</p>
             <span className="arrow" style={{ color: 'var(--gold-soft)' }}>Talk to a broker</span>
@@ -332,29 +332,81 @@ function Process({ onNavigate }) {
 // =============================================================
 // Lender marquee
 // =============================================================
-const LENDERS = [
-'Macquarie', 'Pepper Money', 'Westpac', 'ANZ', 'Liberty', 'Plenti', 'La Trobe Financial',
-'Resimac', 'Latitude', 'Wisr', 'MoneyMe', 'Now Finance', 'Money3', 'Bendigo', 'Prospa', 'Lumi',
-'Judo Bank', 'Banjo', 'OnDeck', 'GetCapital', 'ScotPac', 'Heritage', 'BOQ', 'ME Bank'];
+const LENDER_LOGOS = [
+  { name: 'ANZ', src: '/assets/lenders/ANZ_NewPacific_H_RGB.png' },
+  { name: 'Westpac', src: '/assets/lenders/Westpac_W Logo_col_RGB.png' },
+  { name: 'Commonwealth Bank', src: '/assets/lenders/CommBank landscape.png' },
+  { name: 'BOQ Finance', src: '/assets/lenders/BOQ_Finance_RGB 1.png' },
+  { name: 'Judo Bank', src: '/assets/lenders/judo-bank.png' },
+  { name: 'Liberty', src: '/assets/lenders/Liberty.png' },
+  { name: 'Pepper Money', src: '/assets/lenders/pepper-money-logo.png' },
+  { name: 'Latitude', src: '/assets/lenders/Latitude_primary-logo_indigo_RGB.png' },
+  { name: 'Wisr', src: '/assets/lenders/WISR.png' },
+  { name: 'MoneyMe', src: '/assets/lenders/MONEYME-logo.png' },
+  { name: 'Money3', src: '/assets/lenders/money3-logo_colour_RGB_lge.jpg' },
+  { name: 'Lumi', src: '/assets/lenders/lumi-h-screen.png' },
+  { name: 'Banjo', src: '/assets/lenders/banjo-logo.png' },
+  { name: 'ScotPac', src: '/assets/lenders/scotpaclogo.png' },
+  { name: 'Resimac', src: '/assets/lenders/Resimac.png' },
+  { name: 'Firstmac', src: '/assets/lenders/Firstmac.png' },
+  { name: 'Capital Finance', src: '/assets/lenders/Capital Finance.png' },
+  { name: 'Shift', src: '/assets/lenders/Shift Logo.png' },
+  { name: 'Dynamoney', src: '/assets/lenders/Dynamoney.png' },
+  { name: 'Metro Finance', src: '/assets/lenders/Metro_Logo_Screen_Landscape_Navy_RGB.png' },
+  { name: 'Azora', src: '/assets/lenders/Azora_logo_CMYK@2x.png' },
+  { name: 'Maple', src: '/assets/lenders/maple_landscape_navy.svg' },
+  { name: 'Vestone Capital', src: '/assets/lenders/Vestone Capital.png' },
+  { name: 'Selfco', src: '/assets/lenders/Selfco NEW LOGO.jpg' },
+  { name: 'FinanceOne', src: '/assets/lenders/Financeone .png' },
+  { name: 'SocietyOne', src: '/assets/lenders/SocietyOne.png' },
+  { name: 'Sonder', src: '/assets/lenders/Sonder Equipment Finance Logo.png' },
+  { name: 'Capify', src: '/assets/lenders/capify-logo-color (2).png' },
+  { name: 'AFS', src: '/assets/lenders/AFS_Logo_CMYK_Blue.png' },
+  { name: 'Angle Finance', src: '/assets/lenders/Angle Finance HQ.png' },
+  { name: 'RACV', src: '/assets/lenders/RACV_Logo_CMYK.jpg' },
+  { name: 'Resimac Asset Finance', src: '/assets/lenders/Resimac Asset Finance logo.png' },
+];
 
+const MAJOR_LENDER_LOGOS = LENDER_LOGOS.filter(l => [
+  'ANZ', 'Westpac', 'Commonwealth Bank', 'Judo Bank', 'Liberty',
+  'Pepper Money', 'Latitude', 'Wisr', 'MoneyMe', 'ScotPac',
+].includes(l.name));
+
+function LenderPanelRotator() {
+  const [i, setI] = useStateHome(0);
+  useEffectHome(() => {
+    const id = setInterval(() => setI(v => (v + 1) % MAJOR_LENDER_LOGOS.length), 2200);
+    return () => clearInterval(id);
+  }, []);
+  const l = MAJOR_LENDER_LOGOS[i];
+  return (
+    <div className="accred-rotator">
+      <img key={l.name} src={l.src} alt={l.name} className="accred-rotator-logo" />
+    </div>
+  );
+}
 
 function Lenders() {
   return (
-    <section className="section dark" style={{ padding: '80px 0' }}>
+    <section className="section cream" style={{ padding: '80px 0', borderTop: '1px solid var(--line)' }}>
       <div className="container" style={{ marginBottom: 32 }}>
         <div className="row-between" style={{ flexWrap: 'wrap', gap: 16 }}>
           <div>
-            <div className="eyebrow on-dark"><span className="dot"></span>Lender panel</div>
-            <h2 className="h2" style={{ marginTop: 12, color: 'var(--cream)' }}>Fifty-plus lenders. One file.</h2>
+            <div className="eyebrow"><span className="dot"></span>Lender panel</div>
+            <h2 className="h2" style={{ marginTop: 12 }}>Fifty-plus lenders. One file.</h2>
           </div>
-          <p style={{ maxWidth: 420, color: 'rgba(245,241,232,0.7)', fontFamily: 'var(--serif)', fontSize: 18, fontWeight: 300 }}>
-            We're independent. We work for you — not for the bank with the friendliest BDM.
+          <p style={{ maxWidth: 420, color: 'var(--muted)', fontFamily: 'var(--serif)', fontSize: 18, fontWeight: 300 }}>
+            We're independent. We work for you, not for the bank with the friendliest BDM.
           </p>
         </div>
       </div>
       <div className="marquee">
         <div className="marquee-track">
-          {[...LENDERS, ...LENDERS].map((l, i) => <div className="marquee-item" key={i}>{l}</div>)}
+          {[...LENDER_LOGOS, ...LENDER_LOGOS].map((l, i) => (
+            <div className="marquee-item" key={i}>
+              <img src={l.src} alt={l.name} className="lender-logo" />
+            </div>
+          ))}
         </div>
       </div>
     </section>);
@@ -374,14 +426,57 @@ function Accreditations() {
         <div className="accred-row">
           {ACCREDITATIONS.map(a => (
             <div className="accred-badge" key={a.id}>
-              <span className="accred-label">{a.label}</span>
+              {a.id === 'panel'
+                ? <LenderPanelRotator />
+                : a.logo
+                  ? <img src={a.logo} alt={a.label} className="accred-logo" />
+                  : <span className="accred-label">{a.label}</span>
+              }
               <span className="accred-sub">{a.sub}</span>
             </div>
           ))}
         </div>
-        <p className="body" style={{ textAlign: 'center', marginTop: 24, fontSize: 12, color: 'var(--muted)' }}>
-          Member badges shown as text placeholders — official FBAA, AFCA and lender logos to be added.
-        </p>
+      </div>
+    </section>
+  );
+}
+
+// =============================================================
+// Google reviews banner — sits between the lender strip and the
+// accreditation cards. Branding + CTA only: the live rating, review
+// count and review text live inside the third-party (LeadConnector /
+// Google) reviews widget on the Our Clients page and cannot be read
+// cross-origin, so nothing here is fabricated. "Read our Google reviews"
+// routes to that page where the verified widget renders in full.
+// =============================================================
+function GoogleG({ size = 26 }) {
+  return (
+    <svg viewBox="0 0 48 48" width={size} height={size} aria-hidden="true" focusable="false">
+      <path fill="#4285F4" d="M45.12 24.5c0-1.56-.14-3.06-.4-4.5H24v8.51h11.84c-.51 2.75-2.06 5.08-4.39 6.64v5.52h7.11c4.16-3.83 6.56-9.47 6.56-16.17z"/>
+      <path fill="#34A853" d="M24 46c5.94 0 10.92-1.97 14.56-5.33l-7.11-5.52c-1.97 1.32-4.49 2.1-7.45 2.1-5.73 0-10.58-3.87-12.31-9.07H4.34v5.7C7.96 41.07 15.4 46 24 46z"/>
+      <path fill="#FBBC05" d="M11.69 28.18C11.25 26.86 11 25.45 11 24s.25-2.86.69-4.18v-5.7H4.34C2.85 17.09 2 20.45 2 24s.85 6.91 2.34 9.88l7.35-5.7z"/>
+      <path fill="#EA4335" d="M24 10.75c3.23 0 6.13 1.11 8.41 3.29l6.31-6.31C34.91 4.18 29.93 2 24 2 15.4 2 7.96 6.93 4.34 14.12l7.35 5.7c1.73-5.2 6.58-9.07 12.31-9.07z"/>
+    </svg>
+  );
+}
+
+function GoogleReviews({ onNavigate }) {
+  return (
+    <section className="section paper gr-banner" aria-labelledby="gr-title">
+      <div className="container">
+        <div className="gr-strip">
+          <div className="gr-brand">
+            <span className="gr-glogo"><GoogleG size={30}/></span>
+            <span className="gr-brand-text">
+              <span className="eyebrow" style={{ margin: 0 }}><span className="dot"></span>Verified on Google</span>
+              <span id="gr-title" className="gr-title">Google Reviews</span>
+            </span>
+          </div>
+          <p className="gr-lede">Real reviews from clients we've looked after, published on our Google Business profile.</p>
+          <button type="button" className="btn primary gr-cta" onClick={() => onNavigate('clients')}>
+            Read our Google reviews <span className="arrow">→</span>
+          </button>
+        </div>
       </div>
     </section>
   );
@@ -424,24 +519,24 @@ function Pillars() {
 // =============================================================
 // Editorial feature
 // =============================================================
-function Feature() {
+function Feature({ onNavigate }) {
   return (
     <section className="section paper">
       <div className="container">
         <div className="feature">
           <div className="feature-media">
-            <img src={PHOTOS.client} alt="Client conversation" />
+            <img src={PHOTOS.creditRepairFeature} alt="The Buyer Assist Group with Larni from Wipe Credit Clean" style={{ objectPosition: 'center 20%' }} />
           </div>
           <div className="feature-copy">
-            <div className="eyebrow"><span className="dot"></span>Credit Repair · with Wipe Credit Clean</div>
+            <div className="eyebrow"><span className="dot"></span>Credit repair · with our partner Wipe Credit Clean</div>
             <h2 className="h2">
               When the answer<br />is "<em style={{ fontStyle: 'italic', color: 'var(--gold-2)' }}>not yet</em>" —<br />we don't walk away.
             </h2>
             <p className="body" style={{ fontSize: 17, maxWidth: '46ch' }}>
-              In partnership with Larni and the team at Wipe Credit Clean, we offer credit repair to clients who need a bridge between today and the loan they want. We see the whole picture — and the long way around when it's required.
+              Some clients need to sort out their credit file before the right loan is within reach. Through our partner Wipe Credit Clean, we help them look into it — credit repair is a separate service, and no outcome is guaranteed.
             </p>
-            <div>
-              <a className="btn ghost">Learn about credit repair <span className="arrow">→</span></a>
+            <div className="cluster">
+              <button type="button" className="btn ghost" onClick={() => onNavigate('credit-repair')}>Learn about credit repair <span className="arrow">→</span></button>
             </div>
           </div>
         </div>
@@ -463,10 +558,10 @@ function CTA({ onNavigate }) {
           </h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12, alignItems: 'flex-start' }}>
             <span className="eyebrow">Direct line</span>
-            <a className="h2" style={{ fontFamily: 'var(--serif)', fontWeight: 300, fontSize: 'clamp(28px, 3vw, 40px)' }} href="tel:0480850255">0480 850 255</a>
+            <a className="h2" style={{ fontFamily: 'var(--serif)', fontWeight: 300, fontSize: 'clamp(28px, 3vw, 40px)' }} href="tel:0756131905">07 5613 1905</a>
             <div className="cluster" style={{ marginTop: 16 }}>
               <a className="btn primary" onClick={() => onNavigate('apply')}>Apply online <span className="arrow">→</span></a>
-              <a className="btn ghost">Email a broker</a>
+              <a className="btn ghost" href="mailto:connect@thebuyerassist.com.au">Email a broker</a>
             </div>
           </div>
         </div>
@@ -499,7 +594,7 @@ function BespokeBlock({ onNavigate }) {
           </header>
           <div className="bb-media">
             <span className="bb-stamp">Leonie · Director</span>
-            <img src={PHOTOS.leonie} alt="Leonie, Director, The Buyer Assist Group" />
+            <img src={PHOTOS.leonieBespoke} alt="Leonie, Director, The Buyer Assist Group" />
           </div>
           <div className="bb-copy">
             <div className="bb-def">
@@ -535,13 +630,14 @@ function HomePage({ heroVariant, palette, onNavigate }) {
       <Calculator />
       <Process onNavigate={onNavigate} />
       <Lenders />
+      <GoogleReviews onNavigate={onNavigate} />
       <Accreditations />
       <BespokeBlock onNavigate={onNavigate} />
       <Pillars />
-      <Feature />
+      <Feature onNavigate={onNavigate} />
       <CTA onNavigate={onNavigate} />
     </main>);
 
 }
 
-Object.assign(window, { HomePage, Hero, Products, Calculator, Process, Lenders, Accreditations, BespokeBlock, Pillars, Feature, CTA, LENDERS });
+Object.assign(window, { HomePage, Hero, Products, Calculator, Process, Lenders, GoogleReviews, GoogleG, Accreditations, BespokeBlock, Pillars, Feature, CTA, LENDER_LOGOS, MAJOR_LENDER_LOGOS });

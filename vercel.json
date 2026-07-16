@@ -1,7 +1,8 @@
 {
-  "cleanUrls": true,
-  "trailingSlash": false,
-  "rewrites": [
-    { "source": "/((?!assets/).*)", "destination": "/index.html" }
+  "routes": [
+    { "src": "/staff/(.*)", "headers": { "X-Robots-Tag": "noindex, nofollow" }, "continue": true },
+    { "src": "/dealer/(.*)", "headers": { "X-Robots-Tag": "noindex, nofollow, noarchive, nosnippet" }, "continue": true },
+    { "handle": "filesystem" },
+    { "src": "/(.*)", "dest": "/index.html" }
   ]
 }

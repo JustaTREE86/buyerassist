@@ -1,0 +1,8 @@
+# Don't deploy backups, build artefacts, or local/dev files
+assets/_originals
+buyerassist-website-deploy.zip
+.git
+.env.local
+.env*.local
+node_modules
+README.md

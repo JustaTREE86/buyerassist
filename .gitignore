@@ -33,3 +33,9 @@ _debug/
 
 .vercel
 .env*
+
+# Local-only source material and build artefacts. Already excluded from
+# deploys in .vercelignore; keeping them out of git too (~48MB of originals
+# and a packaged zip that nothing reads).
+assets/_originals/
+buyerassist-website-deploy.zip

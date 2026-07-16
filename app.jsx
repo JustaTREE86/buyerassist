@@ -1,5 +1,13 @@
-/* global React, ReactDOM, LogoExisting, LogoProposed, Icon, HomePage, ServicesPage, AboutPage, ApplyPage, useTweaks, TweaksPanel, TweakSection, TweakRadio, TweakColor */
+/* global React, ReactDOM, LogoExisting, LogoProposed, Icon, HomePage, ServicesPage, AboutPage, ApplyPage, BrokerProfilePage, PartnersPage, CreditRepairPage, CreditRepairEnquiryPage, PrivacyPage, ClientsPage, StaffDebtBustersPage, DealerKoCarsPage, LOANS, useTweaks, TweaksPanel, TweakSection, TweakRadio, TweakColor */
 const { useState: useStateApp, useEffect: useEffectApp } = React;
+
+// Makes an onClick element keyboard-operable (Enter/Space) and exposes it to
+// assistive tech as a button. Spread onto <a>/<div> elements used as buttons.
+const keyBtn = (fn) => ({
+  role: 'button',
+  tabIndex: 0,
+  onKeyDown: (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fn(); } },
+});
 
 // =============================================================
 // Palettes (swap via tweaks)
@@ -68,39 +76,153 @@ const PALETTES = {
 };
 
 // =============================================================
+// Routing — maps page ids to real URLs so pages deep-link, refresh,
+// and use browser back/forward correctly (previously all navigation
+// was in-memory only and every URL other than "/" fell back to Home).
+// =============================================================
+const ROUTES = [
+  { id: 'home', path: '/' },
+  { id: 'services', path: '/loan-products' },
+  { id: 'about', path: '/about' },
+  { id: 'partners', path: '/partners' },
+  { id: 'credit-repair', path: '/credit-repair' },
+  { id: 'credit-repair-enquiry', path: '/credit-repair/enquiry' },
+  { id: 'clients', path: '/our-clients' },
+  { id: 'privacy', path: '/privacy' },
+  { id: 'apply', path: '/apply' },
+  { id: 'staff-debt-busters', path: '/staff/debt-busters' },
+  // Hidden dealer dashboards. Listed here so the URL resolves on a hard
+  // refresh — deliberately not linked from Nav, the footer or the sitemap.
+  { id: 'dealer-ko-cars', path: '/dealer/ko-cars' },
+];
+
+const TITLES = {
+  home: 'The Buyer Assist Group — Bespoke finance, quietly done well.',
+  services: 'Loan Products — The Buyer Assist Group',
+  about: 'About — The Buyer Assist Group',
+  partners: 'Our Partners — The Buyer Assist Group',
+  'credit-repair': 'Credit Repair — The Buyer Assist Group',
+  'credit-repair-enquiry': 'Credit Repair Enquiry — The Buyer Assist Group',
+  clients: 'Our Clients — The Buyer Assist Group',
+  privacy: 'Privacy & Credit Guide — The Buyer Assist Group',
+  apply: 'Apply — The Buyer Assist Group',
+  broker: 'Our Team — The Buyer Assist Group',
+  'dealer-ko-cars': 'KO Cars Deal Tracker — The Buyer Assist Group',
+};
+
+function pathFor(page, state = {}) {
+  if (page === 'broker') return `/team/${state.id || ''}`;
+  if (page === 'apply') {
+    const params = new URLSearchParams();
+    if (state.loan) params.set('loan', state.loan);
+    if (state.referralSource) params.set('ref', state.referralSource);
+    if (state.enquiryType) params.set('type', state.enquiryType);
+    const qs = params.toString();
+    return '/apply' + (qs ? `?${qs}` : '');
+  }
+  const r = ROUTES.find(r => r.id === page);
+  return r ? r.path : '/';
+}
+
+function parsePath(pathname, search) {
+  const clean = pathname.replace(/\/+$/, '') || '/';
+  if (clean === '/staff/debt-busters') return { page: 'staff-debt-busters', state: {} };
+  if (clean === '/dealer/ko-cars') return { page: 'dealer-ko-cars', state: {} };
+  if (clean.startsWith('/team/')) return { page: 'broker', state: { id: clean.slice('/team/'.length) } };
+  if (clean === '/apply') {
+    const params = new URLSearchParams(search);
+    const state = {};
+    if (params.get('loan')) state.loan = params.get('loan');
+    if (params.get('ref')) state.referralSource = params.get('ref');
+    if (params.get('type')) state.enquiryType = params.get('type');
+    return { page: 'apply', state };
+  }
+  const match = ROUTES.find(r => r.path === clean);
+  return match ? { page: match.id, state: {} } : { page: 'home', state: {} };
+}
+
+// =============================================================
 // Nav (with mobile drawer)
 // =============================================================
 function Nav({ current, onNavigate, logoVariant }) {
   const [open, setOpen] = useStateApp(false);
+  const [hovered, setHovered] = useStateApp(null);
+
   const links = [
     { id: 'home', label: 'Home' },
-    { id: 'services', label: 'Loan products' },
+    {
+      id: 'services', label: 'Loan products',
+      children: LOANS.map(l => (
+        l.id === 'credit'
+          ? { id: 'credit-repair', label: l.name }
+          : { id: 'apply', label: l.name, state: { loan: l.id } }
+      )),
+    },
     { id: 'about', label: 'About' },
+    {
+      id: 'partners', label: 'Our partners',
+      children: [
+        { id: 'partners', label: 'Partner network' },
+        { id: 'partners', label: 'Work with us', state: { scrollTo: 'work-with-us' } },
+      ],
+    },
+    { id: 'clients', label: 'Our clients' },
     { id: 'apply', label: 'Apply' },
   ];
-  const go = (id) => { setOpen(false); onNavigate(id); };
+
+  const go = (id, state) => { setOpen(false); setHovered(null); onNavigate(id, state || {}); };
+
   useEffectApp(() => {
     document.body.style.overflow = open ? 'hidden' : '';
     return () => { document.body.style.overflow = ''; };
   }, [open]);
+
   return (
     <>
       <nav className="nav">
         <div className="container">
           <div className="nav-inner">
-            <div className="nav-logo" onClick={() => go('home')}>
+            <div className="nav-logo" onClick={() => go('home')} {...keyBtn(() => go('home'))} aria-label="The Buyer Assist Group — home">
               {logoVariant === 'existing' ? <LogoExisting light={true}/> : <LogoProposed light={true}/>}
             </div>
             <div className="nav-links nav-links-desktop">
               {links.map(l => (
-                <a key={l.id} className={`nav-link ${current === l.id ? 'active' : ''}`} onClick={() => go(l.id)}>
-                  {l.label}
-                </a>
+                <div
+                  key={l.label}
+                  className="nav-item"
+                  onMouseEnter={() => l.children && setHovered(l.label)}
+                  onMouseLeave={() => setHovered(null)}
+                  onBlur={(e) => { if (l.children && !e.currentTarget.contains(e.relatedTarget)) setHovered(null); }}
+                >
+                  <a
+                    className={`nav-link ${current === l.id ? 'active' : ''}`}
+                    onClick={() => !l.children && go(l.id)}
+                    {...keyBtn(() => l.children ? setHovered(v => v === l.label ? null : l.label) : go(l.id))}
+                    onFocus={() => l.children && setHovered(l.label)}
+                    aria-haspopup={l.children ? 'true' : undefined}
+                    aria-expanded={l.children ? (hovered === l.label) : undefined}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    {l.label}
+                    {l.children && <span className="nav-link-chevron">▾</span>}
+                  </a>
+                  {l.children && (
+                    <div className={`nav-dropdown ${hovered === l.label ? 'open' : ''}`}>
+                      <div className="nav-dropdown-inner">
+                        {l.children.map((c, ci) => (
+                          <a key={ci} className="nav-dropdown-item" onClick={() => go(c.id, c.state)} {...keyBtn(() => go(c.id, c.state))}>
+                            {c.label}
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               ))}
             </div>
             <div className="nav-cta">
-              <a href="tel:0480850255" className="nav-phone tabular nav-phone-desktop">0480 850 255</a>
-              <a className="btn primary nav-cta-btn" onClick={() => go('apply')}>
+              <a href="tel:0756131905" className="nav-phone tabular nav-phone-desktop">07 5613 1905</a>
+              <a className="btn primary nav-cta-btn" onClick={() => go('apply')} {...keyBtn(() => go('apply'))}>
                 <span className="nav-cta-text-long">Pre-approval</span>
                 <span className="nav-cta-text-short">Apply</span>
                 <span className="arrow">→</span>
@@ -115,23 +237,34 @@ function Nav({ current, onNavigate, logoVariant }) {
       <div className={`nav-drawer ${open ? 'open' : ''}`} onClick={() => setOpen(false)}>
         <div className="nav-drawer-inner" onClick={e => e.stopPropagation()}>
           <div className="nav-drawer-head">
-            <div onClick={() => go('home')}>
+            <div onClick={() => go('home')} {...keyBtn(() => go('home'))} aria-label="The Buyer Assist Group — home">
               {logoVariant === 'existing' ? <LogoExisting light={true}/> : <LogoProposed light={true}/>}
             </div>
             <button className="nav-drawer-close" onClick={() => setOpen(false)} aria-label="Close">✕</button>
           </div>
           <div className="nav-drawer-links">
-            {links.map((l, i) => (
-              <a key={l.id} className={`nav-drawer-link ${current === l.id ? 'active' : ''}`} onClick={() => go(l.id)}>
-                <span className="num">{['i','ii','iii','iv'][i]}.</span>
-                <span className="lbl">{l.label}</span>
-                <span className="arrow">→</span>
-              </a>
+            {links.filter(l => l.id !== 'apply').map((l, i) => (
+              <div key={l.label}>
+                <a className={`nav-drawer-link ${current === l.id ? 'active' : ''}`} onClick={() => !l.children && go(l.id)} {...keyBtn(() => !l.children && go(l.id))}>
+                  <span className="num">{['i','ii','iii','iv','v','vi'][i]}.</span>
+                  <span className="lbl">{l.label}</span>
+                  <span className="arrow">{l.children ? '' : '→'}</span>
+                </a>
+                {l.children && (
+                  <div style={{ paddingLeft: 48, display: 'flex', flexDirection: 'column', gap: 2, marginTop: -8, marginBottom: 8 }}>
+                    {l.children.map((c, ci) => (
+                      <a key={ci} onClick={() => go(c.id, c.state)} {...keyBtn(() => go(c.id, c.state))} style={{ fontSize: 15, color: 'rgba(245,241,232,0.6)', cursor: 'pointer', padding: '6px 0' }}>
+                        {c.label}
+                      </a>
+                    ))}
+                  </div>
+                )}
+              </div>
             ))}
           </div>
           <div className="nav-drawer-foot">
             <span className="eyebrow on-dark"><span className="dot"></span>Speak to a broker</span>
-            <a href="tel:0480850255" className="nav-drawer-phone">0480 850 255</a>
+            <a href="tel:0756131905" className="nav-drawer-phone">07 5613 1905</a>
             <a href="mailto:connect@thebuyerassist.com.au" className="nav-drawer-email">connect@thebuyerassist.com.au</a>
           </div>
         </div>
@@ -153,7 +286,7 @@ function Footer({ onNavigate, logoVariant }) {
 
         <div className="footer-grid">
           <div>
-            <div onClick={() => onNavigate('home')} style={{ cursor: 'pointer', marginBottom: 24 }}>
+            <div onClick={() => onNavigate('home')} {...keyBtn(() => onNavigate('home'))} aria-label="The Buyer Assist Group — home" style={{ cursor: 'pointer', marginBottom: 24 }}>
               {logoVariant === 'existing' ? <LogoExisting light={true}/> : <LogoProposed light={true}/>}
             </div>
             <p className="body on-dark" style={{ maxWidth: '32ch', fontSize: 14 }}>
@@ -161,25 +294,27 @@ function Footer({ onNavigate, logoVariant }) {
             </p>
             <div style={{ marginTop: 24, fontSize: 13, lineHeight: 1.6, color: 'rgba(245,241,232,0.7)' }}>
               <div>WOTSO, 395 Hamilton Rd</div>
-              <div>Chermside QLD 4034</div>
+              <div>Chermside QLD 4032</div>
               <div style={{ marginTop: 12 }}>ABN 63 680 292 399</div>
             </div>
           </div>
           <div>
             <h5>Navigate</h5>
             <div className="footer-links">
-              <a onClick={() => onNavigate('home')}>Home</a>
-              <a onClick={() => onNavigate('services')}>Loan products</a>
-              <a onClick={() => onNavigate('about')}>About</a>
-              <a onClick={() => onNavigate('apply')}>Apply</a>
-              <a>FAQ</a>
-              <a>Privacy</a>
+              <a onClick={() => onNavigate('home')} {...keyBtn(() => onNavigate('home'))}>Home</a>
+              <a onClick={() => onNavigate('services')} {...keyBtn(() => onNavigate('services'))}>Loan products</a>
+              <a onClick={() => onNavigate('about')} {...keyBtn(() => onNavigate('about'))}>About</a>
+              <a onClick={() => onNavigate('partners')} {...keyBtn(() => onNavigate('partners'))}>Partners</a>
+              <a onClick={() => onNavigate('credit-repair')} {...keyBtn(() => onNavigate('credit-repair'))}>Credit repair</a>
+              <a onClick={() => onNavigate('apply')} {...keyBtn(() => onNavigate('apply'))}>Apply</a>
+              <a onClick={() => onNavigate('privacy')} {...keyBtn(() => onNavigate('privacy'))}>Privacy</a>
+              <a onClick={() => onNavigate('staff-debt-busters')} {...keyBtn(() => onNavigate('staff-debt-busters'))} aria-label="Staff login">Staff login</a>
             </div>
           </div>
           <div>
             <h5>Connect</h5>
             <div className="footer-links">
-              <a href="tel:0480850255">0480 850 255</a>
+              <a href="tel:0756131905">07 5613 1905</a>
               <a href="mailto:connect@thebuyerassist.com.au">connect@thebuyerassist.com.au</a>
               {SOCIALS.map(s => (
                 <a key={s.id} href={s.href} target="_blank" rel="noopener noreferrer">{s.label}</a>
@@ -195,23 +330,23 @@ function Footer({ onNavigate, logoVariant }) {
           </div>
           <div>
             <h5>Regulatory</h5>
-            <div className="footer-links">
-              <a>Credit Rep · 564090</a>
-              <a>Australian Credit Licence · 414426</a>
-              <a>FBAA · M-358724</a>
-              <a>AFCA · 111126</a>
+            <div className="footer-links footer-reg">
+              <span>Credit Rep · 564090</span>
+              <span>Australian Credit Licence · 414426</span>
+              <span>FBAA · M-358724</span>
+              <span>AFCA · 111126</span>
             </div>
           </div>
         </div>
 
         <p className="footer-disclaimer">
-          The Buyer Assist Group is a trading name of Cullen Financial Services Pty Ltd (ABN 63 680 292 399). Credit Representative 564090 is authorised under Australian Credit Licence 414426. Member of the Finance Brokers Association of Australia (FBAA M-358724) and the Australian Financial Complaints Authority (AFCA 111126). Any advice on this website is general in nature and does not take your personal circumstances into account. A Credit Guide and Credit Proposal Disclosure are provided before any credit assistance. Quotes and calculator results are indicative only and not an offer of finance. Lending criteria, fees, terms and conditions apply.
+          The Buyer Assist Group is a trading name of Cullen Financial Services Pty Ltd (ABN 63 680 292 399, ACN 680 292 399). Credit Representative #564090 is authorised under Australian Credit Licence #414426, held by AFAS Group Pty Ltd (ABN 12 134 138 686). Member of the Finance Brokers Association of Australia (FBAA M-358724) and the Australian Financial Complaints Authority (AFCA 111126). Credit advice is provided under the National Consumer Credit Protection Act 2009 (NCCP). Any advice on this website is general in nature and does not take your personal circumstances into account. A Credit Guide and Credit Proposal Disclosure are provided before any credit assistance. Quotes and calculator results are indicative only and not an offer of finance. All finance applications are subject to lender approval and responsible lending assessment. Lending criteria, fees, terms and conditions apply.
         </p>
 
         <div className="footer-meta">
-          <div>© 2025 The Buyer Assist Group. All rights reserved.</div>
+          <div>© 2026 The Buyer Assist Group. All rights reserved.</div>
           <div className="credit">
-            Site concept by <span style={{ borderBottom: '1px solid var(--gold)' }}>Broken Mind Software</span>
+            Powered by <a href="https://brokenmind.com.au" target="_blank" rel="noopener noreferrer">Broken Mind Software</a>
           </div>
         </div>
       </div>
@@ -229,8 +364,9 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
 }/*EDITMODE-END*/;
 
 function App() {
-  const [page, setPage] = useStateApp('home');
-  const [pageState, setPageState] = useStateApp({});
+  const initial = React.useMemo(() => parsePath(window.location.pathname, window.location.search), []);
+  const [page, setPage] = useStateApp(initial.page);
+  const [pageState, setPageState] = useStateApp(initial.state);
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
 
   // Apply palette tokens to :root
@@ -242,17 +378,64 @@ function App() {
     });
   }, [t.palette]);
 
+  useEffectApp(() => {
+    document.title = TITLES[page] || TITLES.home;
+  }, [page]);
+
+  // Keep in-memory route in sync with the browser's back/forward buttons.
+  useEffectApp(() => {
+    const onPop = () => {
+      const parsed = parsePath(window.location.pathname, window.location.search);
+      setPage(parsed.page);
+      setPageState(parsed.state);
+    };
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, []);
+
   const onNavigate = (next, state = {}) => {
     setPage(next);
     setPageState(state);
-    window.scrollTo({ top: 0, behavior: 'auto' });
+    const path = pathFor(next, state);
+    if (window.location.pathname + window.location.search !== path) {
+      history.pushState({ page: next, state }, '', path);
+    }
+    if (state.scrollTo) {
+      // Smooth-scroll to a section on the destination page. The target may not
+      // be mounted yet when navigating in from another page, so poll a few
+      // frames for it before falling back to the top.
+      const id = state.scrollTo;
+      let tries = 0;
+      const tryScroll = () => {
+        const el = document.getElementById(id);
+        if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
+        if (tries++ < 20) requestAnimationFrame(tryScroll);
+        else window.scrollTo({ top: 0, behavior: 'auto' });
+      };
+      requestAnimationFrame(tryScroll);
+    } else {
+      window.scrollTo({ top: 0, behavior: 'auto' });
+    }
   };
+
+  // Hidden staff page is fully isolated — no nav/footer, no tweaks panel,
+  // and never rendered inside the public site chrome.
+  if (page === 'staff-debt-busters') {
+    return <StaffDebtBustersPage/>;
+  }
+
+  // Hidden dealer dashboard — same isolation as the staff page: no nav,
+  // footer, floating contact buttons or tweaks panel, and no public chrome
+  // that could link back out to the marketing site.
+  if (page === 'dealer-ko-cars') {
+    return <DealerKoCarsPage/>;
+  }
 
   // Apply page is full-bleed (no nav/footer)
   if (page === 'apply') {
     return (
       <>
-        <ApplyPage initialLoan={pageState.loan} onNavigate={onNavigate} />
+        <ApplyPage initialLoan={pageState.loan} referralSource={pageState.referralSource} enquiryType={pageState.enquiryType} onNavigate={onNavigate} />
         <FloatingActions onNavigate={onNavigate}/>
         <TweaksControls t={t} setTweak={setTweak}/>
       </>
@@ -265,6 +448,12 @@ function App() {
       {page === 'home' && <HomePage heroVariant={t.heroVariant} palette={t.palette} onNavigate={onNavigate}/>}
       {page === 'services' && <ServicesPage onNavigate={onNavigate}/>}
       {page === 'about' && <AboutPage onNavigate={onNavigate}/>}
+      {page === 'partners' && <PartnersPage onNavigate={onNavigate}/>}
+      {page === 'credit-repair' && <CreditRepairPage onNavigate={onNavigate}/>}
+      {page === 'credit-repair-enquiry' && <CreditRepairEnquiryPage onNavigate={onNavigate}/>}
+      {page === 'broker' && <BrokerProfilePage id={pageState.id} onNavigate={onNavigate}/>}
+      {page === 'clients' && <ClientsPage onNavigate={onNavigate}/>}
+      {page === 'privacy' && <PrivacyPage />}
       <Footer onNavigate={onNavigate} logoVariant={t.logoVariant}/>
       <FloatingActions onNavigate={onNavigate}/>
       <TweaksControls t={t} setTweak={setTweak}/>
