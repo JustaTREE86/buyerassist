@@ -1804,6 +1804,47 @@ h1, h2, h3, h4 { margin: 0; font-family: var(--serif); font-weight: 400; letter-
 }
 .deal-hint { font-size: 13px; color: var(--muted); margin-top: -6px; }
 .deal-form-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 8px; flex-wrap: wrap; }
+
+/* Quick entry: one box, everything else fills in underneath it. */
+.deal-quick { display: flex; flex-direction: column; gap: 10px; }
+.deal-quick > label {
+  font-size: 12px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.08em; color: var(--gold-2);
+}
+.deal-quick textarea {
+  font-size: 16px; line-height: 1.5; padding: 12px;
+  border: 1px solid var(--line); border-radius: 8px;
+  background: #fff; color: var(--ink); font-family: inherit; resize: vertical;
+}
+.deal-quick textarea:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; border-color: var(--gold); }
+
+/* Live read-back of what the parser understood, so a bad guess is visible
+   before it is saved rather than after. */
+.deal-parsed {
+  background: var(--paper); border: 1px solid var(--line);
+  border-radius: 8px; padding: 12px 14px;
+  display: flex; flex-direction: column; gap: 7px;
+}
+.deal-parsed-line { display: flex; gap: 12px; align-items: baseline; margin: 0; }
+.deal-parsed-key {
+  flex: 0 0 74px; font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.06em; color: var(--muted);
+}
+.deal-parsed-val { font-size: 15px; color: var(--muted); font-style: italic; }
+.deal-parsed-val.is-set { color: var(--ink); font-style: normal; font-weight: 600; }
+
+.deal-toggle-fields {
+  align-self: flex-start; background: none; border: none; padding: 4px 0;
+  font: inherit; font-size: 14px; color: var(--ink);
+  text-decoration: underline; text-underline-offset: 3px; cursor: pointer;
+}
+.deal-toggle-fields:hover { color: var(--gold-2); }
+.deal-toggle-fields:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; border-radius: 4px; }
+
+@media (max-width: 640px) {
+  .deal-parsed-line { flex-direction: column; gap: 2px; }
+  .deal-parsed-key { flex-basis: auto; }
+}
 .deal-error { color: #B3261E; font-size: 14px; }
 .deal-error-block {
   background: #FBEAE8; border: 1px solid #EFC0BA;

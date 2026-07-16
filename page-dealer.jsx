@@ -199,6 +199,161 @@ const DEALER_EMPTY_FORM = {
   status: 'New Referral', initial_note: '',
 };
 
+// ---- quick entry --------------------------------------------------------
+//
+// Josh types one line and this pulls it apart. It is deliberately a plain
+// heuristic, not a cleverness contest: whatever it works out is written
+// straight into the visible form fields, so a wrong guess is obvious on
+// screen and correctable before saving. Nothing is saved from the raw text.
+
+// Makes seen across car, truck, bike and equipment finance. Order matters:
+// longer names first so "Land Rover" wins before "Rover" style prefixes and
+// "Mercedes-Benz" before "Mercedes".
+const DEALER_MAKES = [
+  'Mercedes-Benz', 'Harley-Davidson', 'Land Rover', 'Range Rover', 'Alfa Romeo',
+  'Western Star', 'New Holland', 'John Deere', 'Great Wall', 'SsangYong',
+  'Freightliner', 'Volkswagen', 'Mitsubishi', 'Chevrolet', 'Caterpillar',
+  'Kenworth', 'Mercedes', 'Porsche', 'Polestar', 'Kawasaki', 'Triumph',
+  'Aprilia', 'Peugeot', 'Renault', 'Hyundai', 'Genesis', 'Bobcat', 'Komatsu',
+  'Toyota', 'Subaru', 'Suzuki', 'Nissan', 'Holden', 'Jaguar', 'Ducati',
+  'Yamaha', 'Kubota', 'Scania', 'Iveco', 'Lexus', 'Skoda', 'Volvo', 'Tesla',
+  'Honda', 'Mazda', 'Isuzu', 'Cupra', 'Chery', 'Haval', 'Dodge', 'Harley',
+  'Rover', 'Mini', 'Fiat', 'Jeep', 'Audi', 'Ford', 'Opel', 'Seat', 'Hino',
+  'Fuso', 'Mack', 'Ram', 'BMW', 'Kia', 'MG', 'VW', 'GWM', 'LDV', 'BYD', 'KTM',
+];
+
+// Shorthand Josh actually types, mapped to how it should be stored.
+const DEALER_MAKE_ALIASES = {
+  vw: 'Volkswagen',
+  mercedes: 'Mercedes-Benz',
+  merc: 'Mercedes-Benz',
+  harley: 'Harley-Davidson',
+  'great wall': 'GWM',
+  chevy: 'Chevrolet',
+};
+
+const DEALER_RE_EMAIL = /[^\s,;<>()]+@[^\s,;<>()]+\.[A-Za-z]{2,}/;
+// AU mobile and landline, tolerating spaces, dashes, brackets and +61.
+const DEALER_RE_PHONE = /(?:\+?61[\s.-]?|\b0)[2-478](?:[\s.-]?\d){8}\b/;
+const DEALER_RE_MONEY = /\$\s?\d[\d,]*(?:\.\d{1,2})?[kK]?|\b\d[\d,]*(?:\.\d{1,2})?[kK]\b/;
+const DEALER_RE_YEAR = /\b(?:19[89]\d|20[0-3]\d)\b/;
+const DEALER_RE_BARE_PRICE = /\b\d[\d,]{2,}(?:\.\d{1,2})?\b/;
+
+// Cases one hyphen-separated part. Vehicle names break the usual rules:
+// "c200" and "v6" are codes that want full caps, "LS" and "U" are already
+// right, and "ranger" is an ordinary word.
+function dealerTitleCasePart(p) {
+  if (!p) return p;
+  if (/\d/.test(p)) return p.toUpperCase();
+  if (p === p.toUpperCase() && p.length <= 3) return p;
+  return p.charAt(0).toUpperCase() + p.slice(1).toLowerCase();
+}
+
+function dealerTitleCase(s) {
+  return String(s).replace(/\S+/g, (w) => w.split('-').map(dealerTitleCasePart).join('-'));
+}
+
+// "45k" -> 45000, "$47,990" -> 47990
+function dealerParseMoney(raw) {
+  let s = String(raw).replace(/[$,\s]/g, '');
+  let mult = 1;
+  if (/[kK]$/.test(s)) { mult = 1000; s = s.slice(0, -1); }
+  const n = parseFloat(s);
+  if (!isFinite(n) || n <= 0) return '';
+  return String(Math.round(n * mult));
+}
+
+function dealerLooksLikeName(s) {
+  const t = String(s).trim();
+  if (!t || /\d|@/.test(t)) return false;
+  const words = t.split(/\s+/);
+  return words.length >= 1 && words.length <= 4 && words.every((w) => /^[A-Za-z][A-Za-z'’.-]*$/.test(w));
+}
+
+// Pulls make/model/variant out of one phrase, e.g. "2022 ford ranger wildtrak".
+function dealerParseVehiclePhrase(phrase) {
+  const out = { vehicle_make: '', vehicle_model: '', vehicle_variant: '' };
+  let rest = String(phrase).trim();
+  if (!rest) return out;
+
+  let hit = null;
+  for (const make of DEALER_MAKES) {
+    const re = new RegExp('(^|\\s)' + make.replace(/[.*+?^${}()|[\]\\-]/g, '\\$&') + '(\\s|$)', 'i');
+    const m = rest.match(re);
+    if (m) { hit = { make, index: m.index + m[1].length, length: make.length }; break; }
+  }
+  if (!hit) return out;
+
+  const canonical = DEALER_MAKE_ALIASES[hit.make.toLowerCase()] || hit.make;
+  out.vehicle_make = canonical;
+
+  const after = rest.slice(hit.index + hit.length).trim();
+  if (after) {
+    const words = after.split(/\s+/);
+    out.vehicle_model = dealerTitleCase(words[0]);
+    if (words.length > 1) out.vehicle_variant = dealerTitleCase(words.slice(1).join(' '));
+  }
+  return out;
+}
+
+// Text in, form fields out. Returns only the keys it is confident about, so
+// the caller can leave anything else exactly as the user left it.
+function dealerParseEntry(text) {
+  const found = {};
+  let rest = ' ' + String(text || '') + ' ';
+
+  const take = (re, fn) => {
+    const m = rest.match(re);
+    if (!m) return null;
+    rest = rest.slice(0, m.index) + ' , ' + rest.slice(m.index + m[0].length);
+    if (fn) fn(m[0]);
+    return m[0];
+  };
+
+  // Order matters. Email holds no digits worth confusing; phone before any
+  // money rule so a 10-digit mobile is never read as a price; year before the
+  // bare-number price rule so "2022" is a year, not $2,022.
+  take(DEALER_RE_EMAIL, (v) => { found.customer_email = v.trim().toLowerCase(); });
+  take(DEALER_RE_PHONE, (v) => { found.customer_mobile = v.trim().replace(/[.\-]/g, ' ').replace(/\s+/g, ' '); });
+  take(DEALER_RE_MONEY, (v) => { found.vehicle_price = dealerParseMoney(v); });
+  take(DEALER_RE_YEAR, (v) => { found.vehicle_year = v; });
+  if (!found.vehicle_price) take(DEALER_RE_BARE_PRICE, (v) => { found.vehicle_price = dealerParseMoney(v); });
+
+  // Whatever survives splits on the separators people actually type.
+  const chunks = rest.split(/[,;|\n]+|\s+-\s+/).map((c) => c.trim()).filter(Boolean);
+
+  // The chunk naming a make is the vehicle; the rest are name and notes.
+  let vehicleChunk = -1;
+  for (let i = 0; i < chunks.length; i++) {
+    const v = dealerParseVehiclePhrase(chunks[i]);
+    if (v.vehicle_make) {
+      Object.assign(found, v);
+      vehicleChunk = i;
+      break;
+    }
+  }
+
+  const leftovers = chunks.filter((_, i) => i !== vehicleChunk);
+
+  // First name-shaped chunk is the customer; everything after is notes.
+  let nameChunk = -1;
+  for (let i = 0; i < leftovers.length; i++) {
+    if (dealerLooksLikeName(leftovers[i])) { nameChunk = i; break; }
+  }
+  if (nameChunk >= 0) found.customer_name = dealerTitleCase(leftovers[nameChunk]);
+
+  const notes = leftovers.filter((_, i) => i !== nameChunk).join('. ').trim();
+  if (notes) found.initial_note = notes;
+
+  return found;
+}
+
+// One-line summary of what the parser understood, for the confirm strip.
+function dealerVehicleFromFields(f) {
+  return [f.vehicle_year, f.vehicle_make, f.vehicle_model, f.vehicle_variant]
+    .filter(Boolean).join(' ').trim();
+}
+
 function DealerDealForm({ deal, statuses, onClose, onSaved }) {
   const editing = Boolean(deal);
   const [f, setF] = useStateDealer(() => {
@@ -214,7 +369,21 @@ function DealerDealForm({ deal, statuses, onClose, onSaved }) {
   });
   const [error, setError] = useStateDealer('');
   const [busy, setBusy] = useStateDealer(false);
+  const [quick, setQuick] = useStateDealer('');
+  // Editing an existing deal goes straight to the fields; there is nothing to
+  // parse and the quick box would only get in the way.
+  const [showFields, setShowFields] = useStateDealer(editing);
   const set = (k) => (e) => setF((s) => ({ ...s, [k]: e.target.value }));
+
+  // Re-parses on every keystroke and writes into the same fields the form
+  // submits. Only keys the parser is confident about are overwritten, and the
+  // stage dropdown is never touched.
+  const onQuick = (e) => {
+    const text = e.target.value;
+    setQuick(text);
+    const parsed = dealerParseEntry(text);
+    setF((s) => ({ ...DEALER_EMPTY_FORM, status: s.status, ...parsed }));
+  };
 
   // The server validates all of this again; this pass is only so the user gets
   // an answer without waiting for a round trip.
@@ -233,7 +402,12 @@ function DealerDealForm({ deal, statuses, onClose, onSaved }) {
     e.preventDefault();
     if (busy) return;
     const invalid = validate();
-    if (invalid) { setError(invalid); return; }
+    if (invalid) {
+      setError(invalid);
+      // The missing field is useless if it's behind the toggle.
+      setShowFields(true);
+      return;
+    }
     setError('');
     setBusy(true);
     try {
@@ -264,6 +438,62 @@ function DealerDealForm({ deal, statuses, onClose, onSaved }) {
         </div>
 
         <form onSubmit={submit} className="bp-form" noValidate>
+          {!editing && (
+            <div className="deal-quick">
+              <label htmlFor="d-quick">Type the deal</label>
+              <textarea id="d-quick" rows={3} value={quick} onChange={onQuick} autoFocus
+                        placeholder="2022 Ford Ranger Wildtrak, John Smith, 0400 123 456, john@email.com, $45000, waiting on payslips" />
+              <p className="deal-hint">
+                Car, name, phone, email, price, notes. Any order, commas between them. Everything below fills in as you type.
+              </p>
+
+              <div className="deal-parsed" aria-live="polite">
+                <p className="deal-parsed-line">
+                  <span className="deal-parsed-key">Vehicle</span>
+                  <span className={dealerVehicleFromFields(f) ? 'deal-parsed-val is-set' : 'deal-parsed-val'}>
+                    {dealerVehicleFromFields(f) || 'not picked up yet'}
+                  </span>
+                </p>
+                <p className="deal-parsed-line">
+                  <span className="deal-parsed-key">Customer</span>
+                  <span className={f.customer_name ? 'deal-parsed-val is-set' : 'deal-parsed-val'}>
+                    {f.customer_name || 'not picked up yet'}
+                  </span>
+                </p>
+                <p className="deal-parsed-line">
+                  <span className="deal-parsed-key">Contact</span>
+                  <span className={(f.customer_mobile || f.customer_email) ? 'deal-parsed-val is-set' : 'deal-parsed-val'}>
+                    {[f.customer_mobile, f.customer_email].filter(Boolean).join('  ·  ') || 'not picked up yet'}
+                  </span>
+                </p>
+                {f.vehicle_price && (
+                  <p className="deal-parsed-line">
+                    <span className="deal-parsed-key">Price</span>
+                    <span className="deal-parsed-val is-set">${formatMoney(f.vehicle_price)}</span>
+                  </p>
+                )}
+                {f.initial_note && (
+                  <p className="deal-parsed-line">
+                    <span className="deal-parsed-key">Note</span>
+                    <span className="deal-parsed-val is-set">{f.initial_note}</span>
+                  </p>
+                )}
+              </div>
+
+              <div className="bp-field">
+                <label htmlFor="d-status-quick">Current stage</label>
+                <select id="d-status-quick" className="cr-select" value={f.status} onChange={set('status')}>
+                  {statuses.map((s) => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </div>
+
+              <button type="button" className="deal-toggle-fields" onClick={() => setShowFields((v) => !v)}>
+                {showFields ? 'Hide the detail fields' : 'Something wrong? Fix the details'}
+              </button>
+            </div>
+          )}
+
+          <div hidden={!showFields}>
           <p className="deal-form-legend">Vehicle</p>
           <div className="bp-row">
             <div className="bp-field">
@@ -318,12 +548,14 @@ function DealerDealForm({ deal, statuses, onClose, onSaved }) {
           <p className="deal-hint">Enter at least one of mobile or email.</p>
 
           <p className="deal-form-legend">Progress</p>
-          <div className="bp-field">
-            <label htmlFor="d-status">Current stage <span aria-hidden="true">*</span></label>
-            <select id="d-status" className="cr-select" required value={f.status} onChange={set('status')}>
-              {statuses.map((s) => <option key={s} value={s}>{s}</option>)}
-            </select>
-          </div>
+          {editing && (
+            <div className="bp-field">
+              <label htmlFor="d-status">Current stage <span aria-hidden="true">*</span></label>
+              <select id="d-status" className="cr-select" required value={f.status} onChange={set('status')}>
+                {statuses.map((s) => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </div>
+          )}
 
           {!editing && (
             <div className="bp-field">
@@ -336,6 +568,7 @@ function DealerDealForm({ deal, statuses, onClose, onSaved }) {
           <div className="bp-field">
             <label htmlFor="d-dealer">Dealer</label>
             <input id="d-dealer" type="text" value="KO Cars" readOnly disabled />
+          </div>
           </div>
 
           {error && <p role="alert" className="deal-error">{error}</p>}
@@ -408,8 +641,6 @@ function DealerDealCard({ deal, canEdit, statuses, onChanged, onEdit }) {
       <h2 className="deal-vehicle">{title || 'Vehicle details to be confirmed'}</h2>
 
       <p className="deal-vehicle-meta">
-        {deal.vehicle_registration && <span>Rego {deal.vehicle_registration}</span>}
-        {deal.vehicle_stock_number && <span>Stock {deal.vehicle_stock_number}</span>}
         {deal.vehicle_price !== null && deal.vehicle_price !== undefined && (
           <span>${formatMoney(deal.vehicle_price)}</span>
         )}
