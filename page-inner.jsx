@@ -1,9 +1,10 @@
-/* global React, PHOTOS, LOANS, Icon, LogoExisting, LogoProposed, LENDER_LOGOS, BROKERS, SocialIcon, CONTACT, DOC_CHECKLIST, CREDIT_REPAIR_DOCS, NEXT_STEPS, isValidAUPhone, isValidEmail, docsMailto, submitEnquiry */
-const { useState: useStateInner } = React;
+/* global React, PHOTOS, LOANS, Icon, LogoExisting, LogoProposed, LENDER_LOGOS, BROKERS, SocialIcon, CONTACT, CREDIT_REPAIR_DOCS, AFOS_PORTAL_URL, afosLink, isValidAUPhone, isValidEmail, submitEnquiry */
 
-// Lead delivery is configured in one place: CONTACT.formEndpoint (components.jsx).
-// Paste your Formspree endpoint there to email submissions straight to the inbox;
-// while it's blank, forms fall back to the visitor's email app so nothing is lost.
+// Credit Repair and "become a referral partner" enquiries POST to
+// CONTACT.formEndpoint (/api/lead in components.jsx) → Make → GoHighLevel.
+// Finance applications don't: every loan CTA links straight to AFOS (see
+// afosLink / AFOS_LINKS in components.jsx), which drops the lead directly
+// into Leonie's AFOS CRM with no email/Make relay in between.
 
 // =============================================================
 // Page header (shared)
@@ -41,12 +42,21 @@ function ServicesPage({ onNavigate }) {
         <div className="container">
           <div className="services-list">
             {LOANS.map(l => (
-              <div className="service-row" key={l.id} onClick={() => l.id === 'credit' ? onNavigate('credit-repair') : onNavigate('apply', { loan: l.id })}>
-                <span className="svc-num">{l.roman}</span>
-                <h3 className="svc-name">{l.name}</h3>
-                <p className="svc-desc">{l.desc}</p>
-                <span className="svc-arrow">→</span>
-              </div>
+              l.id === 'credit' ? (
+                <div className="service-row" key={l.id} onClick={() => onNavigate('credit-repair')}>
+                  <span className="svc-num">{l.roman}</span>
+                  <h3 className="svc-name">{l.name}</h3>
+                  <p className="svc-desc">{l.desc}</p>
+                  <span className="svc-arrow">→</span>
+                </div>
+              ) : (
+                <a className="service-row" key={l.id} href={afosLink(l.id)}>
+                  <span className="svc-num">{l.roman}</span>
+                  <h3 className="svc-name">{l.name}</h3>
+                  <p className="svc-desc">{l.desc}</p>
+                  <span className="svc-arrow">→</span>
+                </a>
+              )
             ))}
           </div>
         </div>
@@ -218,101 +228,12 @@ function AboutPage({ onNavigate }) {
 }
 
 // =============================================================
-// Apply page (multi-step form)
+// Apply page — pick what you're financing, land straight in AFOS.
+// AFOS owns the quick-quote form and drops the lead directly into Leonie's
+// CRM, so this page's only job is routing: no fields, no submission, no
+// email/Make relay to keep in sync.
 // =============================================================
-function ApplyPage({ initialLoan, referralSource, enquiryType, onNavigate }) {
-  // Debt-consolidation enquiries arrive pre-set from the Debt Busters partner
-  // card; they carry a referral source so the notification is identifiable.
-  const isDebtConsolidation = initialLoan === 'debt-consolidation';
-  const [step, setStep] = useStateInner(initialLoan ? 1 : 0);
-  const [data, setData] = useStateInner({
-    loan: initialLoan || null,
-    amount: 45000,
-    term: '',
-    purpose: isDebtConsolidation ? 'Debt consolidation' : '',
-    name: '',
-    email: '',
-    phone: '',
-    employment: '',
-    income: '',
-    consent: false,
-    company: '', // honeypot — real users leave this empty
-  });
-  const [error, setError] = useStateInner('');
-  const [sending, setSending] = useStateInner(false);
-  // Stable reference — generated once, not on every re-render, so it matches
-  // the number the client is told to quote when they email their documents.
-  const [reference] = useStateInner(() => 'BAG-' + Math.floor(Math.random() * 9000 + 1000));
-
-  // Credit repair is a separate enquiry, never a finance application — if it
-  // ever arrives here, redirect to the dedicated credit repair form.
-  React.useEffect(() => {
-    if (initialLoan === 'credit') onNavigate('credit-repair-enquiry');
-  }, [initialLoan]);
-
-  const update = (k, v) => setData(d => ({ ...d, [k]: v }));
-
-  const loanName = isDebtConsolidation
-    ? 'Debt Consolidation'
-    : (LOANS.find(l => l.id === data.loan) || {}).name || data.loan || 'General enquiry';
-
-  const submitApplication = async () => {
-    if (sending) return; // guard against double-submit
-    // Validate the essentials so a broker can actually call the lead back.
-    if (!data.name.trim()) { setError('Please enter your full name.'); return; }
-    if (!isValidAUPhone(data.phone)) { setError('Please enter a valid Australian mobile or phone number.'); return; }
-    if (!isValidEmail(data.email)) { setError('Please enter a valid email address so your broker can reach you.'); return; }
-    if (!data.consent) { setError('Please confirm you accept the Privacy Policy so we can act on your enquiry.'); return; }
-    if (data.company) { setStep(3); return; } // silently drop bots
-    setError('');
-    setSending(true);
-    const payload = {
-      reference,
-      enquiryType: enquiryType || (isDebtConsolidation ? 'Debt Consolidation Enquiry' : 'Finance Application'),
-      referralSource: referralSource || 'Website',
-      loanType: loanName,
-      amount: `$${Number(data.amount).toLocaleString('en-AU')}`,
-      term: data.term || '—',
-      purpose: data.purpose || '—',
-      name: data.name,
-      email: data.email,
-      phone: data.phone,
-      employment: data.employment || '—',
-      income: data.income || '—',
-      consentToPrivacyPolicy: 'Yes',
-      _subject: `${enquiryType || (isDebtConsolidation ? 'Debt Busters Referral — Debt Consolidation' : 'New website enquiry')} ${reference} — ${data.name}`,
-    };
-    const delivered = await submitEnquiry(payload);
-    // If delivery failed, fall back to the visitor's email app so the lead is
-    // never silently lost.
-    if (!delivered) {
-      const body =
-        `Reference: ${reference}\n` +
-        `Enquiry type: ${payload.enquiryType}\n` +
-        `Referral source: ${payload.referralSource}\n` +
-        `Name: ${data.name}\n` +
-        `Mobile: ${data.phone}\n` +
-        `Email: ${data.email}\n` +
-        `Loan type: ${loanName}\n` +
-        `Amount: ${payload.amount}\n` +
-        `Term: ${payload.term}\n` +
-        `Purpose: ${payload.purpose}\n` +
-        `Employment: ${payload.employment}\n` +
-        `Income: ${payload.income}`;
-      window.location.href =
-        `mailto:${CONTACT.email}?subject=${encodeURIComponent(`${payload._subject}`)}` +
-        `&body=${encodeURIComponent(body)}`;
-    }
-    setSending(false);
-    setStep(3);
-  };
-  const steps = [
-    { name: 'Loan type' },
-    { name: 'Details' },
-    { name: 'You' },
-    { name: 'Submit' },
-  ];
-
+function ApplyPage({ onNavigate }) {
   return (
     <main className="apply-shell" data-screen-label="04 Apply">
       <aside className="apply-rail">
@@ -321,20 +242,12 @@ function ApplyPage({ initialLoan, referralSource, enquiryType, onNavigate }) {
             <LogoProposed light={true} />
           </div>
           <div>
-            <div className="eyebrow on-dark"><span className="dot"></span>Application</div>
+            <div className="eyebrow on-dark"><span className="dot"></span>Quick quote</div>
             <h2 className="h2" style={{ color: 'var(--cream)', marginTop: 12 }}>
-              Three minutes,<br/>
+              Two minutes,<br/>
               <em style={{fontStyle:'italic', color:'var(--gold)'}}>no credit check.</em>
             </h2>
           </div>
-        </div>
-        <div className="apply-steps-list">
-          {steps.map((s, i) => (
-            <div key={s.name} className={`apply-step-item ${i === step ? 'active' : ''} ${i < step ? 'done' : ''}`}>
-              <span className="dot">{i < step ? '✓' : ['i','ii','iii','iv'][i]}</span>
-              <span className="name">{s.name}</span>
-            </div>
-          ))}
         </div>
         <div style={{ marginTop: 'auto', paddingTop: 32, borderTop: '1px solid var(--line-dark)', display: 'flex', flexDirection: 'column', gap: 6 }}>
           <span className="eyebrow on-dark">Need help?</span>
@@ -343,196 +256,34 @@ function ApplyPage({ initialLoan, referralSource, enquiryType, onNavigate }) {
       </aside>
 
       <div className="apply-body">
-        {step === 0 && (
-          <div className="fade-in">
-            <div className="eyebrow"><span className="dot"></span>Step 01</div>
-            <h1 className="h1" style={{ marginTop: 12, marginBottom: 12 }}>What are you <em style={{fontStyle:'italic', color:'var(--gold-2)'}}>financing?</em></h1>
-            <p className="lede" style={{ marginBottom: 40, maxWidth: '40ch' }}>Pick the closest match. If you're unsure, choose anything — we'll route you to the right broker.</p>
-            <div className="loan-picker">
-              {LOANS.map(l => (
-                <div key={l.id} className={`item ${data.loan === l.id ? 'selected' : ''}`} onClick={() => l.id === 'credit' ? onNavigate('credit-repair-enquiry') : update('loan', l.id)}>
+        <div className="fade-in">
+          <div className="eyebrow"><span className="dot"></span>Get a quick quote</div>
+          <h1 className="h1" style={{ marginTop: 12, marginBottom: 12 }}>What are you <em style={{fontStyle:'italic', color:'var(--gold-2)'}}>financing?</em></h1>
+          <p className="lede" style={{ marginBottom: 40, maxWidth: '42ch' }}>Pick the closest match — it opens our quick-quote form, which lands straight with your broker. No waiting on email.</p>
+          <div className="loan-picker">
+            {LOANS.map(l => (
+              l.id === 'credit' ? (
+                <div key={l.id} className="item" onClick={() => onNavigate('credit-repair-enquiry')}>
                   <span className="roman">{l.roman}</span>
                   <span className="name">{l.name}</span>
-                  {l.id === 'credit' && <span className="item-hint">Separate enquiry →</span>}
+                  <span className="item-hint">Separate enquiry →</span>
                 </div>
-              ))}
-              <div className={`item ${data.loan === 'other' ? 'selected' : ''}`} onClick={() => update('loan', 'other')}>
-                <span className="roman">+</span>
-                <span className="name">Something else</span>
-              </div>
-            </div>
-            <div className="apply-actions">
-              <a className="btn link" onClick={() => onNavigate('home')}>← Back to site</a>
-              <a className="btn primary" onClick={() => data.loan && setStep(1)} style={{ opacity: data.loan ? 1 : 0.5 }}>Continue <span className="arrow">→</span></a>
-            </div>
-          </div>
-        )}
-
-        {step === 1 && (
-          <div className="fade-in">
-            <div className="eyebrow"><span className="dot"></span>Step 02</div>
-            <h1 className="h1" style={{ marginTop: 12, marginBottom: 12 }}>How much, and <em style={{fontStyle:'italic', color:'var(--gold-2)'}}>for how long?</em></h1>
-            <p className="lede" style={{ marginBottom: 40 }}>An estimate is fine. We'll firm it up on the call.</p>
-            <div className="field">
-              <label>Amount needed</label>
-              <input type="text" value={`$${Number(data.amount).toLocaleString('en-AU')}`} onChange={e => update('amount', Number(e.target.value.replace(/[^\d]/g, '')) || 0)}/>
-            </div>
-            <div className="field-row">
-              <div className="field">
-                <label>Preferred term</label>
-                <input type="text" placeholder="e.g. 5 years" value={data.term} onChange={e => update('term', e.target.value)} />
-              </div>
-              <div className="field">
-                <label>Purpose</label>
-                <input type="text" placeholder="e.g. New ute for the trades business" value={data.purpose} onChange={e => update('purpose', e.target.value)}/>
-              </div>
-            </div>
-            <div className="apply-actions">
-              <a className="btn link" onClick={() => setStep(0)}>← Back</a>
-              <a className="btn primary" onClick={() => setStep(2)}>Continue <span className="arrow">→</span></a>
-            </div>
-          </div>
-        )}
-
-        {step === 2 && (
-          <div className="fade-in">
-            <div className="eyebrow"><span className="dot"></span>Step 03</div>
-            <h1 className="h1" style={{ marginTop: 12, marginBottom: 12 }}>And a <em style={{fontStyle:'italic', color:'var(--gold-2)'}}>little</em> about you.</h1>
-            <p className="lede" style={{ marginBottom: 40 }}>So your broker can call back with something useful. Fields marked <span aria-hidden="true">*</span> are required.</p>
-            <div className="field-row">
-              <div className="field">
-                <label htmlFor="ap-name">Full name <span aria-hidden="true">*</span></label>
-                <input id="ap-name" type="text" required autoComplete="name" value={data.name} onChange={e => update('name', e.target.value)} placeholder="Jane Citizen"/>
-              </div>
-              <div className="field">
-                <label htmlFor="ap-phone">Mobile <span aria-hidden="true">*</span></label>
-                <input id="ap-phone" type="tel" required autoComplete="tel" value={data.phone} onChange={e => update('phone', e.target.value)} placeholder="04XX XXX XXX"/>
-              </div>
-            </div>
-            <div className="field">
-              <label htmlFor="ap-email">Email <span aria-hidden="true">*</span></label>
-              <input id="ap-email" type="email" required autoComplete="email" value={data.email} onChange={e => update('email', e.target.value)} placeholder="you@email.com"/>
-            </div>
-            <div className="field-row">
-              <div className="field">
-                <label htmlFor="ap-employment">Employment</label>
-                <input id="ap-employment" type="text" value={data.employment} onChange={e => update('employment', e.target.value)} placeholder="Self-employed / PAYG / SME owner"/>
-              </div>
-              <div className="field">
-                <label htmlFor="ap-income">Annual income (approx.)</label>
-                <input id="ap-income" type="text" inputMode="numeric" value={data.income} onChange={e => update('income', e.target.value)} placeholder="$120,000"/>
-              </div>
-            </div>
-
-            {/* Honeypot: hidden from people, tempting to bots. Real users leave it blank. */}
-            <input type="text" name="company" value={data.company} onChange={e => update('company', e.target.value)} tabIndex={-1} autoComplete="off" aria-hidden="true" style={{ position: 'absolute', left: '-9999px', width: 1, height: 1, opacity: 0 }} />
-
-            <label className="apply-consent">
-              <input type="checkbox" checked={data.consent} onChange={e => update('consent', e.target.checked)} />
-              <span>
-                I consent to The Buyer Assist Group collecting and using my personal information to assess and progress my enquiry, and to contacting me and sharing my information with relevant brokers, lenders or service providers where required. I accept the <a onClick={(e) => { e.preventDefault(); onNavigate('privacy'); }} href="#privacy" style={{ textDecoration: 'underline' }}>Privacy Policy</a>.
-              </span>
-            </label>
-
-            {error && (
-              <p role="alert" style={{ color: '#b3261e', fontSize: 14, marginTop: 12 }}>{error}</p>
-            )}
-            <div className="apply-actions">
-              <a className="btn link" onClick={() => setStep(1)}>← Back</a>
-              <button type="button" className="btn primary" onClick={submitApplication} disabled={sending} style={{ opacity: sending ? 0.6 : 1 }}>
-                {sending ? 'Sending…' : <>Submit <span className="arrow">→</span></>}
-              </button>
-            </div>
-          </div>
-        )}
-
-        {step === 3 && (
-          <div className="fade-in apply-done">
-            <div className="eyebrow"><span className="dot"></span>{enquiryType || (isDebtConsolidation ? 'Debt consolidation enquiry received' : 'Application received')}</div>
-            <h1 className="display" style={{ fontSize: 'clamp(44px, 6vw, 84px)', marginTop: 16, marginBottom: 24 }}>
-              Thank you{data.name ? ',' : ''}<br/>
-              <em>{data.name || 'we have your file.'}</em>
-            </h1>
-            <p className="lede" style={{ maxWidth: '46ch', marginBottom: 36 }}>
-              A Buyer Assist broker will review your application and contact you within one business day.
-            </p>
-            <div className="grid-summary" style={{ marginBottom: 44 }}>
-              <div>
-                <span className="eyebrow"><span className="dot"></span>Reference</span>
-                <div style={{ fontFamily: 'var(--serif)', fontSize: 28, marginTop: 12 }} className="tabular">{reference}</div>
-              </div>
-              <div>
-                <span className="eyebrow"><span className="dot"></span>Your broker</span>
-                <div style={{ fontFamily: 'var(--serif)', fontSize: 28, marginTop: 12 }}>To be assigned</div>
-              </div>
-            </div>
-
-            {/* A. Send your supporting documents */}
-            <section className="apply-panel" aria-labelledby="docs-h">
-              <div className="eyebrow" style={{ color: 'var(--gold-2)' }}><span className="dot"></span>Fast-track your application</div>
-              <h2 id="docs-h" className="apply-panel-title">Send your supporting documents</h2>
-              <p className="apply-panel-lede">
-                To help us assess your application sooner, please email your supporting documents to{' '}
-                <a href={`mailto:${CONTACT.email}`} style={{ color: 'var(--gold-2)', textDecoration: 'underline' }}>{CONTACT.email}</a>{' '}
-                and include your application reference in the subject line.
-              </p>
-              <div className="apply-ref-callout">
-                <span className="eyebrow" style={{ margin: 0 }}>Your reference</span>
-                <strong className="tabular">{reference}</strong>
-                <span className="apply-ref-hint">Suggested subject: “Documents for application {reference}”</span>
-              </div>
-              <p className="apply-panel-sub">You may need to send:</p>
-              <ul className="apply-checklist">
-                {DOC_CHECKLIST.map(d => <li key={d}>{d}</li>)}
-              </ul>
-              <p className="apply-panel-note">
-                Please only send documents relevant to your application. Your broker will let you know if anything else is required.
-              </p>
-              <a className="btn primary" href={docsMailto(reference, data.name)}>
-                Email my documents <span className="arrow">→</span>
-              </a>
-            </section>
-
-            {/* B. What happens next */}
-            <section className="apply-panel" aria-labelledby="next-h">
-              <div className="eyebrow"><span className="dot"></span>What happens next</div>
-              <h2 id="next-h" className="apply-panel-title">A clear path from here</h2>
-              <ol className="apply-timeline">
-                {NEXT_STEPS.map((s, i) => (
-                  <li key={s}><span className="apply-timeline-num">{i + 1}</span><span>{s}</span></li>
-                ))}
-              </ol>
-              <p className="apply-panel-note">
-                Submitting an application does not guarantee approval. All finance is subject to lender assessment and responsible lending checks.
-              </p>
-            </section>
-
-            {/* C. Contact */}
-            <section className="apply-panel" aria-labelledby="help-h">
-              <div className="eyebrow"><span className="dot"></span>Need a hand?</div>
-              <h2 id="help-h" className="apply-panel-title">Contact The Buyer Assist Group</h2>
-              <p className="apply-panel-lede">
-                Our team is here to help with questions about your application, documents or what happens next.
-              </p>
-              <div className="apply-contact-rows">
-                <a href={`tel:${CONTACT.phoneTel}`} className="apply-contact-row">
-                  <span className="eyebrow" style={{ margin: 0 }}>Phone</span>
-                  <strong>{CONTACT.phoneDisplay}</strong>
+              ) : (
+                <a key={l.id} className="item" href={afosLink(l.id)}>
+                  <span className="roman">{l.roman}</span>
+                  <span className="name">{l.name}</span>
                 </a>
-                <a href={`mailto:${CONTACT.email}`} className="apply-contact-row">
-                  <span className="eyebrow" style={{ margin: 0 }}>Email</span>
-                  <strong>{CONTACT.email}</strong>
-                </a>
-              </div>
-              <div className="cluster" style={{ marginTop: 28 }}>
-                <a className="btn ghost" onClick={() => onNavigate('home')}>← Back to homepage</a>
-                <button type="button" className="btn primary" onClick={() => { setStep(0); setError(''); setData({ loan: null, amount: 45000, term: '', purpose: '', name: '', email: '', phone: '', employment: '', income: '', consent: false, company: '' }); }}>
-                  Start another application <span className="arrow">→</span>
-                </button>
-              </div>
-            </section>
+              )
+            ))}
+            <a className="item" href={AFOS_PORTAL_URL}>
+              <span className="roman">+</span>
+              <span className="name">Something else</span>
+            </a>
           </div>
-        )}
+          <div className="apply-actions">
+            <a className="btn link" onClick={() => onNavigate('home')}>← Back to site</a>
+          </div>
+        </div>
       </div>
     </main>
   );
@@ -683,6 +434,8 @@ function CreditRepairEnquiryPage({ onNavigate }) {
   const [sent, setSent] = React.useState(false);
   const [error, setError] = React.useState('');
   const [sending, setSending] = React.useState(false);
+  // Set only when delivery failed, so the visitor can still send their details.
+  const [fallbackMailto, setFallbackMailto] = React.useState('');
   const [reference] = React.useState(() => 'BAG-CR-' + Math.floor(Math.random() * 9000 + 1000));
   const [f, setF] = React.useState({
     issue: '', reportingBody: '', listingType: '', creditor: '', belief: '',
@@ -722,6 +475,8 @@ function CreditRepairEnquiryPage({ onNavigate }) {
       _subject: `Credit Repair Enquiry ${reference} — ${f.name}`,
     };
     const delivered = await submitEnquiry(payload);
+    setSending(false);
+    // Never confirm an enquiry that did not actually leave the browser.
     if (!delivered) {
       const body = Object.entries({
         Reference: reference, Issue: f.issue, 'Reporting body': f.reportingBody, 'Listing type': f.listingType,
@@ -729,9 +484,13 @@ function CreditRepairEnquiryPage({ onNavigate }) {
         'Previously disputed': f.previouslyDisputed, 'Has credit report': f.hasReport, 'Desired outcome': f.outcome,
         Details: f.details, Name: f.name, Email: f.email, Phone: f.phone,
       }).map(([k, v]) => `${k}: ${v || '—'}`).join('\n');
-      window.location.href = `mailto:${CONTACT.email}?subject=${encodeURIComponent(`Credit Repair Enquiry ${reference} — ${f.name}`)}&body=${encodeURIComponent(body)}`;
+      setFallbackMailto(`mailto:${CONTACT.email}?subject=${encodeURIComponent(`Credit Repair Enquiry ${reference} — ${f.name}`)}&body=${encodeURIComponent(body)}`);
+      setError(
+        `We couldn't send your enquiry just then. Nothing has been lost, but we don't have it yet. ` +
+        `Please call ${CONTACT.phoneDisplay} or use the button below, quoting reference ${reference}.`
+      );
+      return;
     }
-    setSending(false);
     setSent(true);
   };
 
@@ -880,7 +639,8 @@ function CreditRepairEnquiryPage({ onNavigate }) {
             </div>
 
             {/* Honeypot */}
-            <input type="text" name="company" value={f.company} onChange={set('company')} tabIndex={-1} autoComplete="off" aria-hidden="true" style={{ position: 'absolute', left: '-9999px', width: 1, height: 1, opacity: 0 }} />
+            {/* Honeypot — name must stay meaningless, see the apply form. */}
+            <input type="text" name="bag-xr7" value={f.company} onChange={set('company')} tabIndex={-1} autoComplete="off" aria-hidden="true" style={{ position: 'absolute', left: '-9999px', width: 1, height: 1, opacity: 0 }} />
 
             <label className="apply-consent">
               <input type="checkbox" checked={f.consent} onChange={set('consent')} />
@@ -890,6 +650,13 @@ function CreditRepairEnquiryPage({ onNavigate }) {
             </label>
 
             {error && <p role="alert" style={{ color: '#b3261e', fontSize: 14, marginTop: 4 }}>{error}</p>}
+            {fallbackMailto && (
+              <p style={{ marginTop: 8 }}>
+                <a className="btn primary" href={fallbackMailto}>
+                  Email my enquiry instead <span className="arrow">→</span>
+                </a>
+              </p>
+            )}
             <p className="apply-panel-note" style={{ marginTop: 4 }}>
               The Buyer Assist Group will review your information and advise whether assistance may be available. No credit repair outcome can be guaranteed.
             </p>
@@ -910,6 +677,8 @@ function PartnersPage({ onNavigate }) {
   const [sent, setSent] = React.useState(false);
   const [error, setError] = React.useState('');
   const [sending, setSending] = React.useState(false);
+  // Set only when delivery failed, so the enquiry can still be sent by email.
+  const [fallbackMailto, setFallbackMailto] = React.useState('');
   const [form, setForm] = React.useState({ name: '', business: '', email: '', phone: '', message: '', consent: false, company: '' });
   const set = k => e => setForm(f => ({ ...f, [k]: e.target.type === 'checkbox' ? e.target.checked : e.target.value }));
 
@@ -931,11 +700,17 @@ function PartnersPage({ onNavigate }) {
       _subject: `Referral Partner Enquiry — ${form.business}`,
     };
     const delivered = await submitEnquiry(payload);
+    setSending(false);
+    // Never confirm an enquiry that did not actually leave the browser.
     if (!delivered) {
       const body = `Name: ${form.name}\nBusiness: ${form.business}\nEmail: ${form.email}\nPhone: ${form.phone}\n\n${form.message}`;
-      window.location.href = `mailto:${CONTACT.email}?subject=${encodeURIComponent(`Referral Partner Enquiry — ${form.business}`)}&body=${encodeURIComponent(body)}`;
+      setFallbackMailto(`mailto:${CONTACT.email}?subject=${encodeURIComponent(`Referral Partner Enquiry — ${form.business}`)}&body=${encodeURIComponent(body)}`);
+      setError(
+        `We couldn't send your enquiry just then. Nothing has been lost, but we don't have it yet. ` +
+        `Please call ${CONTACT.phoneDisplay} or use the button below.`
+      );
+      return;
     }
-    setSending(false);
     setSent(true);
   };
 
@@ -1007,9 +782,9 @@ function PartnersPage({ onNavigate }) {
                 All applications are subject to assessment, eligibility and lender approval. Debt consolidation is not guaranteed and may not reduce repayments, interest or overall cost. Debt Busters is a referral partner, not the lender.
               </p>
               <div className="partner-cta-row">
-                <button type="button" className="btn primary" onClick={() => onNavigate('apply', { loan: 'debt-consolidation', referralSource: 'Debt Busters', enquiryType: 'Debt Busters Referral - Debt Consolidation' })}>
+                <a className="btn primary" href={afosLink('debt-consolidation')}>
                   Enquire about debt consolidation <span className="arrow">→</span>
-                </button>
+                </a>
               </div>
             </div>
           </div>
@@ -1094,12 +869,20 @@ function PartnersPage({ onNavigate }) {
                     <label htmlFor="pp-message">Tell us about your business</label>
                     <textarea id="pp-message" rows={3} value={form.message} onChange={set('message')} placeholder="What types of clients do you work with?" />
                   </div>
-                  <input type="text" name="company" value={form.company} onChange={set('company')} tabIndex={-1} autoComplete="off" aria-hidden="true" style={{ position: 'absolute', left: '-9999px', width: 1, height: 1, opacity: 0 }} />
+                  {/* Honeypot — name must stay meaningless, see the apply form. */}
+                  <input type="text" name="bag-xr7" value={form.company} onChange={set('company')} tabIndex={-1} autoComplete="off" aria-hidden="true" style={{ position: 'absolute', left: '-9999px', width: 1, height: 1, opacity: 0 }} />
                   <label className="apply-consent">
                     <input type="checkbox" checked={form.consent} onChange={set('consent')} />
                     <span>I accept the <a onClick={(e) => { e.preventDefault(); onNavigate('privacy'); }} href="#privacy" style={{ textDecoration: 'underline' }}>Privacy Policy</a> and consent to being contacted about a referral partnership.</span>
                   </label>
                   {error && <p role="alert" style={{ color: '#b3261e', fontSize: 14, marginTop: 4 }}>{error}</p>}
+                  {fallbackMailto && (
+                    <p style={{ marginTop: 8 }}>
+                      <a className="btn primary" href={fallbackMailto}>
+                        Email my enquiry instead <span className="arrow">→</span>
+                      </a>
+                    </p>
+                  )}
                   <button type="submit" className="btn primary" disabled={sending} style={{ marginTop: 8, opacity: sending ? 0.6 : 1 }}>
                     {sending ? 'Sending…' : <>Register interest <span className="arrow">→</span></>}
                   </button>

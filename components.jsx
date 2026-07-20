@@ -141,28 +141,46 @@ const CONTACT = {
   addressLine1: 'WOTSO, 395 Hamilton Rd',
   addressLine2: 'Chermside QLD 4032',
   // ---- Lead delivery -------------------------------------------------------
-  // Paste your Formspree endpoint here to send form submissions straight to
-  // your inbox, e.g. 'https://formspree.io/f/abcdwxyz' (sign up free at
-  // formspree.io). While this is '', forms fall back to opening the visitor's
-  // email app to the address in `email` above so a lead is never silently lost.
-  formEndpoint: 'https://formspree.io/f/mbdnjoql',
+  // Finance applications no longer come through here — every loan CTA links
+  // straight to an AFOS quick-quote page (see AFOS_LINKS below), which lands
+  // directly in Leonie's AFOS CRM. Only the Credit Repair Enquiry and the
+  // "become a referral partner" form still POST here, which forwards to Make
+  // and on into GoHighLevel. Do NOT point this back at Formspree: it silently
+  // classified loan enquiries as spam, answering HTTP 200 {"ok":true} while
+  // binning the lead, so the browser could not tell delivery from loss. A
+  // generic spam filter will always fight finance wording. See decisions/log.md.
+  formEndpoint: '/api/lead',
 };
+
+// =============================================================
+// AFOS quick-quote links — every loan-type CTA sends the visitor straight
+// here instead of through our own form. AFOS owns the field collection and
+// drops the lead directly into Leonie's CRM. Where a loan type has no
+// dedicated AFOS link, we route to the personal loans quick-quote (relabelled
+// on the button) rather than invent a URL AFOS doesn't have.
+// =============================================================
+const AFOS_PORTAL_URL = 'https://thebuyerassist.afos.io';
+const AFOS_LINKS = {
+  car: 'https://thebuyerassist.afos.io/car-loans/quick-quote',
+  personal: 'https://thebuyerassist.afos.io/personal-loans/quick-quote',
+  commercial: 'https://thebuyerassist.afos.io/commercial-finance/quick-quote',
+  business: 'https://thebuyerassist.afos.io/business-loans/quick-quote',
+  leisure: 'https://thebuyerassist.afos.io/leisure-finance/quick-quote',
+  caravan: 'https://thebuyerassist.afos.io/caravan-finance/quick-quote',
+  motorbike: 'https://thebuyerassist.afos.io/bike-finance/quick-quote',
+  boat: 'https://thebuyerassist.afos.io/boat-finance/quick-quote',
+  // No dedicated AFOS quick-quote yet — personal loans is the closest fit.
+  medical: 'https://thebuyerassist.afos.io/personal-loans/quick-quote',
+  equipment: 'https://thebuyerassist.afos.io/personal-loans/quick-quote',
+  'debt-consolidation': 'https://thebuyerassist.afos.io/personal-loans/quick-quote',
+};
+function afosLink(loanId) {
+  return AFOS_LINKS[loanId] || AFOS_PORTAL_URL;
+}
 
 // =============================================================
 // Shared form helpers, document checklists & compliance copy
 // =============================================================
-
-// Documents commonly needed for a finance application.
-const DOC_CHECKLIST = [
-  'Driver licence or photo identification',
-  'Two recent payslips',
-  'Recent bank statements',
-  'Proof of address',
-  'Current loan or credit card statements',
-  'Asset invoice, purchase contract or seller details',
-  'Business financials, if self-employed',
-  'Any other documents requested by your broker',
-];
 
 // Documents relevant to a credit repair enquiry.
 const CREDIT_REPAIR_DOCS = [
@@ -172,15 +190,6 @@ const CREDIT_REPAIR_DOCS = [
   'Identification',
   'Previous dispute responses',
   'Any supporting evidence',
-];
-
-// The five-step "what happens next" journey shown after an application.
-const NEXT_STEPS = [
-  'We review your application',
-  'A Buyer Assist broker contacts you',
-  'We confirm any documents or information required',
-  'We compare suitable options from our lender panel',
-  'We explain the available options before anything proceeds',
 ];
 
 // Australian phone validation. Accepts mobiles (04xx xxx xxx), landlines
@@ -195,29 +204,21 @@ function isValidEmail(v) {
   return /^\S+@\S+\.\S+$/.test(String(v || '').trim());
 }
 
-// Builds a mailto: link so a client can email their documents with the
-// application reference pre-filled into the subject and body.
-function docsMailto(reference, name) {
-  const subject = `Documents for application ${reference}`;
-  const body =
-    `Hi Buyer Assist Group,\n\n` +
-    `Please find attached the supporting documents for my application.\n\n` +
-    `Application reference: ${reference}\n\n` +
-    `Thanks.${name ? '\n' + name : ''}`;
-  return `mailto:${CONTACT.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-}
-
-// Posts an enquiry to Formspree. Returns true if delivered, false otherwise so
-// callers can fall back to a mailto. A honeypot field (_gotcha) traps bots.
+// Posts an enquiry to /api/lead. Returns true only when the server confirms the
+// lead reached Make, so callers can offer a mailto fallback otherwise. Checking
+// res.ok alone is not enough: the endpoint answers 200 for a honeypot hit, and
+// the Formspree service this replaced returned 200 while discarding the lead.
+// Treat anything short of an explicit {ok:true} as undelivered.
 async function submitEnquiry(payload) {
   if (!CONTACT.formEndpoint) return false;
   try {
     const res = await fetch(CONTACT.formEndpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify(payload),
+      body: JSON.stringify({ ...payload, sourceUrl: window.location.href }),
     });
-    return res.ok;
+    const json = await res.json().catch(() => ({}));
+    return res.ok && json.ok === true;
   } catch (e) {
     return false;
   }
@@ -331,7 +332,8 @@ Object.assign(window, {
   PHOTOS, LOANS, Icon, LogoExisting, LogoProposed, BrandLogo,
   SOCIALS, SocialIcon, ACCREDITATIONS, CONTACT, BROKERS, FloatingActions,
   formatMoney, repaymentPerWeek,
-  DOC_CHECKLIST, CREDIT_REPAIR_DOCS, NEXT_STEPS,
-  isValidAUPhone, isValidEmail, docsMailto, submitEnquiry,
+  AFOS_PORTAL_URL, AFOS_LINKS, afosLink,
+  CREDIT_REPAIR_DOCS,
+  isValidAUPhone, isValidEmail, submitEnquiry,
   useState, useEffect, useMemo, useRef,
 });

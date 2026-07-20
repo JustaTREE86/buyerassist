@@ -1,4 +1,4 @@
-/* global React, PHOTOS, LOANS, Icon, LogoExisting, LogoProposed, formatMoney, repaymentPerWeek, SocialIcon */
+/* global React, PHOTOS, LOANS, Icon, LogoExisting, LogoProposed, formatMoney, repaymentPerWeek, SocialIcon, afosLink */
 const { useState: useStateHome, useMemo: useMemoHome, useEffect: useEffectHome } = React;
 
 // Set a Formspree endpoint to receive partner enquiries by email:
@@ -193,14 +193,25 @@ function Products({ onNavigate }) {
         <div className="products-grid">
           {LOANS.map((loan) => {
             const isCredit = loan.id === 'credit';
+            if (isCredit) {
+              return (
+                <div className="product" key={loan.id} onClick={() => onNavigate('credit-repair')}>
+                  <div className="icon"><Icon name={loan.icon} size={36} /></div>
+                  <span className="num">{loan.roman}</span>
+                  <h3 className="name">{loan.name}</h3>
+                  <p className="desc">{loan.desc}</p>
+                  <span className="arrow">Learn more</span>
+                </div>
+              );
+            }
             return (
-            <div className="product" key={loan.id} onClick={() => isCredit ? onNavigate('credit-repair') : onNavigate('apply', { loan: loan.id })}>
+            <a className="product" key={loan.id} href={afosLink(loan.id)}>
               <div className="icon"><Icon name={loan.icon} size={36} /></div>
               <span className="num">{loan.roman}</span>
               <h3 className="name">{loan.name}</h3>
               <p className="desc">{loan.desc}</p>
-              <span className="arrow">{isCredit ? 'Learn more' : 'Apply'}</span>
-            </div>
+              <span className="arrow">Apply</span>
+            </a>
             );
           })}
           <div className="product" style={{ background: 'var(--ink)', color: 'var(--cream)' }} onClick={() => onNavigate('apply')}>
@@ -283,7 +294,7 @@ function Calculator() {
                 <div className="row"><span className="k">Total interest (est.)</span><span className="v">${formatMoney(Math.max(0, totalInterest))}</span></div>
                 <div className="row"><span className="k">Establishment fee</span><span className="v">$0</span></div>
               </div>
-              <a className="btn primary" style={{ marginTop: 24, alignSelf: 'flex-start' }}>Lock this rate in <span className="arrow">→</span></a>
+              <a className="btn primary" style={{ marginTop: 24, alignSelf: 'flex-start' }} href={afosLink(type)}>Lock this rate in <span className="arrow">→</span></a>
             </div>
           </div>
         </div>

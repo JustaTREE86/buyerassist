@@ -1,4 +1,4 @@
-/* global React, ReactDOM, LogoExisting, LogoProposed, Icon, HomePage, ServicesPage, AboutPage, ApplyPage, BrokerProfilePage, PartnersPage, CreditRepairPage, CreditRepairEnquiryPage, PrivacyPage, ClientsPage, StaffDebtBustersPage, DealerKoCarsPage, LOANS, useTweaks, TweaksPanel, TweakSection, TweakRadio, TweakColor */
+/* global React, ReactDOM, LogoExisting, LogoProposed, Icon, HomePage, ServicesPage, AboutPage, ApplyPage, BrokerProfilePage, PartnersPage, CreditRepairPage, CreditRepairEnquiryPage, PrivacyPage, ClientsPage, StaffDebtBustersPage, DealerKoCarsPage, AutozoneApplyPage, LOANS, afosLink, useTweaks, TweaksPanel, TweakSection, TweakRadio, TweakColor */
 const { useState: useStateApp, useEffect: useEffectApp } = React;
 
 // Makes an onClick element keyboard-operable (Enter/Space) and exposes it to
@@ -94,6 +94,9 @@ const ROUTES = [
   // Hidden dealer dashboards. Listed here so the URL resolves on a hard
   // refresh — deliberately not linked from Nav, the footer or the sitemap.
   { id: 'dealer-ko-cars', path: '/dealer/ko-cars' },
+  // Josh's personal AFOS quick-quote link, sent directly to his own clients —
+  // not linked from Nav, the footer or the sitemap.
+  { id: 'autozone-apply', path: '/autozone-apply' },
 ];
 
 const TITLES = {
@@ -108,35 +111,20 @@ const TITLES = {
   apply: 'Apply — The Buyer Assist Group',
   broker: 'Our Team — The Buyer Assist Group',
   'dealer-ko-cars': 'KO Cars Deal Tracker — The Buyer Assist Group',
+  'autozone-apply': 'Quick Quote — The Buyer Assist Group',
 };
 
 function pathFor(page, state = {}) {
   if (page === 'broker') return `/team/${state.id || ''}`;
-  if (page === 'apply') {
-    const params = new URLSearchParams();
-    if (state.loan) params.set('loan', state.loan);
-    if (state.referralSource) params.set('ref', state.referralSource);
-    if (state.enquiryType) params.set('type', state.enquiryType);
-    const qs = params.toString();
-    return '/apply' + (qs ? `?${qs}` : '');
-  }
   const r = ROUTES.find(r => r.id === page);
   return r ? r.path : '/';
 }
 
-function parsePath(pathname, search) {
+function parsePath(pathname) {
   const clean = pathname.replace(/\/+$/, '') || '/';
   if (clean === '/staff/debt-busters') return { page: 'staff-debt-busters', state: {} };
   if (clean === '/dealer/ko-cars') return { page: 'dealer-ko-cars', state: {} };
   if (clean.startsWith('/team/')) return { page: 'broker', state: { id: clean.slice('/team/'.length) } };
-  if (clean === '/apply') {
-    const params = new URLSearchParams(search);
-    const state = {};
-    if (params.get('loan')) state.loan = params.get('loan');
-    if (params.get('ref')) state.referralSource = params.get('ref');
-    if (params.get('type')) state.enquiryType = params.get('type');
-    return { page: 'apply', state };
-  }
   const match = ROUTES.find(r => r.path === clean);
   return match ? { page: match.id, state: {} } : { page: 'home', state: {} };
 }
@@ -152,10 +140,12 @@ function Nav({ current, onNavigate, logoVariant }) {
     { id: 'home', label: 'Home' },
     {
       id: 'services', label: 'Loan products',
+      // Loan-specific items link straight to AFOS's quick-quote page, not
+      // through our own /apply route — see afosLink (components.jsx).
       children: LOANS.map(l => (
         l.id === 'credit'
           ? { id: 'credit-repair', label: l.name }
-          : { id: 'apply', label: l.name, state: { loan: l.id } }
+          : { href: afosLink(l.id), label: l.name }
       )),
     },
     { id: 'about', label: 'About' },
@@ -210,9 +200,15 @@ function Nav({ current, onNavigate, logoVariant }) {
                     <div className={`nav-dropdown ${hovered === l.label ? 'open' : ''}`}>
                       <div className="nav-dropdown-inner">
                         {l.children.map((c, ci) => (
-                          <a key={ci} className="nav-dropdown-item" onClick={() => go(c.id, c.state)} {...keyBtn(() => go(c.id, c.state))}>
-                            {c.label}
-                          </a>
+                          c.href ? (
+                            <a key={ci} className="nav-dropdown-item" href={c.href}>
+                              {c.label}
+                            </a>
+                          ) : (
+                            <a key={ci} className="nav-dropdown-item" onClick={() => go(c.id, c.state)} {...keyBtn(() => go(c.id, c.state))}>
+                              {c.label}
+                            </a>
+                          )
                         ))}
                       </div>
                     </div>
@@ -253,9 +249,15 @@ function Nav({ current, onNavigate, logoVariant }) {
                 {l.children && (
                   <div style={{ paddingLeft: 48, display: 'flex', flexDirection: 'column', gap: 2, marginTop: -8, marginBottom: 8 }}>
                     {l.children.map((c, ci) => (
-                      <a key={ci} onClick={() => go(c.id, c.state)} {...keyBtn(() => go(c.id, c.state))} style={{ fontSize: 15, color: 'rgba(245,241,232,0.6)', cursor: 'pointer', padding: '6px 0' }}>
-                        {c.label}
-                      </a>
+                      c.href ? (
+                        <a key={ci} href={c.href} style={{ fontSize: 15, color: 'rgba(245,241,232,0.6)', cursor: 'pointer', padding: '6px 0' }}>
+                          {c.label}
+                        </a>
+                      ) : (
+                        <a key={ci} onClick={() => go(c.id, c.state)} {...keyBtn(() => go(c.id, c.state))} style={{ fontSize: 15, color: 'rgba(245,241,232,0.6)', cursor: 'pointer', padding: '6px 0' }}>
+                          {c.label}
+                        </a>
+                      )
                     ))}
                   </div>
                 )}
@@ -364,7 +366,7 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
 }/*EDITMODE-END*/;
 
 function App() {
-  const initial = React.useMemo(() => parsePath(window.location.pathname, window.location.search), []);
+  const initial = React.useMemo(() => parsePath(window.location.pathname), []);
   const [page, setPage] = useStateApp(initial.page);
   const [pageState, setPageState] = useStateApp(initial.state);
   const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
@@ -385,7 +387,7 @@ function App() {
   // Keep in-memory route in sync with the browser's back/forward buttons.
   useEffectApp(() => {
     const onPop = () => {
-      const parsed = parsePath(window.location.pathname, window.location.search);
+      const parsed = parsePath(window.location.pathname);
       setPage(parsed.page);
       setPageState(parsed.state);
     };
@@ -431,11 +433,17 @@ function App() {
     return <DealerKoCarsPage/>;
   }
 
+  // Josh's personal quick-quote embed — same isolation: nothing that leads
+  // a client back into the marketing site or the tweaks panel.
+  if (page === 'autozone-apply') {
+    return <AutozoneApplyPage/>;
+  }
+
   // Apply page is full-bleed (no nav/footer)
   if (page === 'apply') {
     return (
       <>
-        <ApplyPage initialLoan={pageState.loan} referralSource={pageState.referralSource} enquiryType={pageState.enquiryType} onNavigate={onNavigate} />
+        <ApplyPage onNavigate={onNavigate} />
         <FloatingActions onNavigate={onNavigate}/>
         <TweaksControls t={t} setTweak={setTweak}/>
       </>

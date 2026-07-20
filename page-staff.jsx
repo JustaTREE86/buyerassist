@@ -259,7 +259,10 @@ function DebtBustersOutcomeForm({ password }) {
         </div>
 
         {/* Honeypot */}
-        <input type="text" name="company" value={f.company} onChange={set('company')} tabIndex={-1} autoComplete="off" aria-hidden="true" style={{ position: 'absolute', left: '-9999px', width: 1, height: 1, opacity: 0 }} />
+        {/* Honeypot — the name must stay meaningless. Chrome's address autofill
+            ignores autocomplete="off" and would fill a field called "company",
+            silently dropping a real outcome submission. */}
+        <input type="text" name="bag-xr7" value={f.company} onChange={set('company')} tabIndex={-1} autoComplete="off" aria-hidden="true" style={{ position: 'absolute', left: '-9999px', width: 1, height: 1, opacity: 0 }} />
 
         {error && <p role="alert" style={{ color: '#b3261e', fontSize: 14 }}>{error}</p>}
 

@@ -33,9 +33,10 @@ Built by **BrokenMind Software**.
 - **Our Partners** (`/partners`) — Ready Finance, Debt Busters, Wipe Credit Clean, plus a "become a referral partner" form
 - **Credit Repair** (`/credit-repair`) + **Credit Repair Enquiry** (`/credit-repair/enquiry`) — separate from a finance application, no guaranteed-outcome wording
 - **Our Clients** (`/our-clients`) — testimonials + Google reviews widget
-- **Apply** (`/apply`) — Multi-step pre-approval form, full-bleed (no nav/footer)
+- **Apply** (`/apply`) — Loan-type picker, full-bleed (no nav/footer); each option links straight to its AFOS quick-quote page
 - **Privacy & Credit Guide** (`/privacy`) — NCCP disclosures, lender schedule
 - **Staff — Debt Busters outcome** (`/staff/debt-busters`) — **hidden**, password-gated, not linked from nav/footer/sitemap. See "Hidden staff page" below.
+- **Josh's quick quote** (`/autozone-apply`) — **hidden**, not linked from nav/footer/sitemap. Full-bleed embed of Josh's personal AFOS referral widget (`page-autozone.jsx`) — a link he sends directly to clients.
 
 All pages are real, deep-linkable URLs (browser back/forward and page refresh both work) — routing lives in `app.jsx` (`ROUTES` / `pathFor` / `parsePath`).
 
@@ -93,7 +94,8 @@ Without these set, `/staff/debt-busters` still loads and rejects logins with a c
 - [ ] Add Google Analytics 4 tag to `index.html`
 - [ ] Set `DEBT_BUSTERS_STAFF_PASSWORD` and `MAKE_WEBHOOK_URL` in Vercel before relying on `/staff/debt-busters`
 - [ ] Activate the Make scenario "Debt Busters Outcome, GHL + Email" (id 6559562) and build the GHL workflow that emails Debt Busters + internal copy off the `db-outcome-dead` tag
-- [x] Apply form wired to Formspree (`CONTACT.formEndpoint` in `components.jsx`), with a `mailto:` fallback if delivery fails
+- [x] Every loan-type CTA (`/apply`, product cards, Nav dropdown, calculator) links straight to its AFOS quick-quote page (`AFOS_LINKS` / `afosLink()` in `components.jsx`) — no form, no email relay
+- [x] Credit Repair Enquiry and "become a referral partner" still post through `CONTACT.formEndpoint` (`/api/lead`) → Make → GoHighLevel
 - [x] Privacy Policy / Credit Guide page live at `/privacy`
 - [x] Debt Busters added to the Our Partners section with compliant, no-guarantee wording
 - [ ] Confirm the licensee address on `/privacy` (Bundall QLD 4217) against the office address in the footer (WOTSO, Chermside QLD 4032) — these currently disagree and only Josh/Leonie can confirm which is correct
@@ -112,6 +114,7 @@ Without these set, `/staff/debt-busters` still loads and rejects logins with a c
 | `page-clients.jsx` | Our Clients — testimonials + reviews widget |
 | `page-privacy.jsx` | Privacy & Credit Guide |
 | `page-staff.jsx` | Hidden `/staff/debt-busters` page — password gate + outcome form |
+| `page-autozone.jsx` | Hidden `/autozone-apply` page — full-bleed embed of Josh's personal AFOS referral widget |
 | `app.jsx` | Router (`ROUTES`/`pathFor`/`parsePath`), Nav, Footer, top-level `App` |
 | `tweaks-panel.jsx` | Client design tweaks panel (only opens when driven by an external host — no visible toggle in production) |
 | `api/staff-auth.js` | Serverless — checks the staff password |
