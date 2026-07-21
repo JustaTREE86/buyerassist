@@ -31,8 +31,11 @@ function useAutozoneStaffNoIndex() {
 }
 
 function azsCaption(weekly) {
+  // Full https:// URL on its own line so Facebook auto-links it (post text
+  // can't carry real HTML anchors — a clean URL is what makes it clickable).
   return 'From $' + weekly + ' per week.\n'
-    + 'APPLY NOW 👉 thebuyerassist.com.au/autozone-apply\n'
+    + 'APPLY NOW 👉\n'
+    + 'https://www.thebuyerassist.com.au/autozone-apply\n'
     + 'To Approved Purchasers (T.A.P). Fees, T&Cs and lending criteria apply.';
 }
 
