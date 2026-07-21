@@ -1,4 +1,4 @@
-/* global React, ReactDOM, LogoExisting, LogoProposed, Icon, HomePage, ServicesPage, AboutPage, ApplyPage, BrokerProfilePage, PartnersPage, CreditRepairPage, CreditRepairEnquiryPage, PrivacyPage, ClientsPage, StaffDebtBustersPage, DealerKoCarsPage, AutozoneApplyPage, LOANS, afosLink, useTweaks, TweaksPanel, TweakSection, TweakRadio, TweakColor */
+/* global React, ReactDOM, LogoExisting, LogoProposed, Icon, HomePage, ServicesPage, AboutPage, ApplyPage, BrokerProfilePage, PartnersPage, CreditRepairPage, CreditRepairEnquiryPage, PrivacyPage, ClientsPage, StaffDebtBustersPage, DealerKoCarsPage, AutozoneApplyPage, AutozoneStaffPage, LOANS, afosLink, useTweaks, TweaksPanel, TweakSection, TweakRadio, TweakColor */
 const { useState: useStateApp, useEffect: useEffectApp } = React;
 
 // Makes an onClick element keyboard-operable (Enter/Space) and exposes it to
@@ -97,6 +97,9 @@ const ROUTES = [
   // Josh's personal AFOS quick-quote link, sent directly to his own clients —
   // not linked from Nav, the footer or the sitemap.
   { id: 'autozone-apply', path: '/autozone-apply' },
+  // AutoZone QLD staff ad-copy tool — internal reference for the dealership,
+  // not linked from Nav, the footer or the sitemap.
+  { id: 'autozone-staff', path: '/autozone-staff' },
 ];
 
 const TITLES = {
@@ -112,6 +115,7 @@ const TITLES = {
   broker: 'Our Team — The Buyer Assist Group',
   'dealer-ko-cars': 'KO Cars Deal Tracker — The Buyer Assist Group',
   'autozone-apply': 'Quick Quote — The Buyer Assist Group',
+  'autozone-staff': 'AutoZone Staff Ad Copy — The Buyer Assist Group',
 };
 
 function pathFor(page, state = {}) {
@@ -437,6 +441,11 @@ function App() {
   // a client back into the marketing site or the tweaks panel.
   if (page === 'autozone-apply') {
     return <AutozoneApplyPage/>;
+  }
+
+  // AutoZone QLD staff ad-copy tool — isolated internal page, no public chrome.
+  if (page === 'autozone-staff') {
+    return <AutozoneStaffPage/>;
   }
 
   // Apply page is full-bleed (no nav/footer)

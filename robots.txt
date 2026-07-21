@@ -3,3 +3,4 @@ Allow: /
 Disallow: /staff/
 Disallow: /dealer/
 Disallow: /autozone-apply
+Disallow: /autozone-staff

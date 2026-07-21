@@ -37,6 +37,7 @@ Built by **BrokenMind Software**.
 - **Privacy & Credit Guide** (`/privacy`) — NCCP disclosures, lender schedule
 - **Staff — Debt Busters outcome** (`/staff/debt-busters`) — **hidden**, password-gated, not linked from nav/footer/sitemap. See "Hidden staff page" below.
 - **Josh's quick quote** (`/autozone-apply`) — **hidden**, not linked from nav/footer/sitemap. Full-bleed embed of Josh's personal AFOS referral widget (`page-autozone.jsx`) — a link he sends directly to clients.
+- **AutoZone staff ad copy** (`/autozone-staff`) — **hidden**, not linked from nav/footer/sitemap. Internal reference (`page-autozone-staff.jsx`) AutoZone QLD staff open to copy ready-made, compliant Facebook ad copy per vehicle price ($9,990–$99,990). Repayments computed live from the locked offer (11.95% p.a. / 60 mth / $550 estab + $1,210 brokerage). NOT the customer page. Comparison rate 14.49% is flagged `[VERIFY with licensee]`.
 
 All pages are real, deep-linkable URLs (browser back/forward and page refresh both work) — routing lives in `app.jsx` (`ROUTES` / `pathFor` / `parsePath`).
 
