@@ -2,5 +2,7 @@ User-agent: *
 Allow: /
 Disallow: /staff/
 Disallow: /dealer/
+Disallow: /eve
 Disallow: /autozone-apply
+Disallow: /apply/josh
 Disallow: /autozone-staff

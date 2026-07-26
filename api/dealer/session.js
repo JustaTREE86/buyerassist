@@ -10,6 +10,7 @@
 const { readSession, ROLE_STAFF } = require('../_session');
 const { DEAL_STATUSES } = require('../_deals');
 const { getDealerBySlug } = require('../_supabase');
+const { salespeopleFor } = require('../_dealer-config');
 
 module.exports = async function handler(req, res) {
   if (req.method !== 'GET') {
@@ -44,11 +45,16 @@ module.exports = async function handler(req, res) {
     ok: true,
     authenticated: true,
     statuses: DEAL_STATUSES,
+    // Roster of this dealer's salespeople, for staff's "assign to" dropdown
+    // when adding/editing a deal. Served here so the UI never keeps its own
+    // copy that could drift from _dealer-config.js.
+    salespeople: salespeopleFor(session.dealerSlug),
     session: {
       role: session.role,
       name: session.name,
       dealerSlug: session.dealerSlug,
       dealerName,
+      salesperson: session.salesperson || null,
       canEdit: session.role === ROLE_STAFF,
       expiresAt: session.exp,
     },

@@ -1,8 +1,10 @@
 // POST /api/dealer/login — exchanges a password for a signed session cookie.
 //
 // Two roles share one form. The password decides which:
-//   BUYER_ASSIST_STAFF_PASSWORD -> staff  (read/write)
-//   <DEALER>_DEALER_PASSWORD    -> dealer (read-only, pinned to that dealer)
+//   BUYER_ASSIST_STAFF_PASSWORD -> staff  (read/write, sees every dealer)
+//   a roster password           -> dealer (read-only, pinned to that dealer
+//                                  AND to the one salesperson the password
+//                                  belongs to — see _dealer-config.js)
 //
 // Passwords exist only as env vars on the server. They are never sent to the
 // browser and never stored in the database — the browser only ever posts one
@@ -10,12 +12,7 @@
 const { setSessionCookie, timingSafeEqualStr, ROLE_STAFF, ROLE_DEALER } = require('../_session');
 const { clean } = require('../_deals');
 const { getDealerBySlug } = require('../_supabase');
-
-// Adding a dealer later = add a row here, set the env var, insert the dealer
-// row, and add a route for its page. Nothing else needs to change.
-const DEALER_PASSWORD_ENV = {
-  'ko-cars': 'KO_CARS_DEALER_PASSWORD',
-};
+const { loginsFor, isKnownDealer } = require('../_dealer-config');
 
 // Small in-memory throttle to blunt password guessing. Serverless instances
 // are ephemeral and there can be several at once, so this is a speed bump,
@@ -40,17 +37,24 @@ function clientIp(req) {
   return (Array.isArray(fwd) ? fwd[0] : String(fwd || '')).split(',')[0].trim() || 'unknown';
 }
 
-// Checks the supplied password against every configured password without
-// short-circuiting, so response timing can't reveal which role was matched.
-function resolveRole(password, slug) {
+// Checks the supplied password against every configured password for this
+// dealer without short-circuiting, so response timing can't reveal which
+// login was matched (or nearly matched). Returns { role, salesperson } or
+// null — salesperson is null for staff, and for a dealer login it is always
+// the one person that password belongs to.
+function resolveLogin(password, slug) {
   const staffPassword = process.env.BUYER_ASSIST_STAFF_PASSWORD;
-  const dealerPassword = process.env[DEALER_PASSWORD_ENV[slug]];
-
   const staffHit = Boolean(staffPassword) && timingSafeEqualStr(password, staffPassword);
-  const dealerHit = Boolean(dealerPassword) && timingSafeEqualStr(password, dealerPassword);
 
-  if (staffHit) return ROLE_STAFF;
-  if (dealerHit) return ROLE_DEALER;
+  let dealerHit = null;
+  for (const login of loginsFor(slug)) {
+    const configured = process.env[login.passwordEnv];
+    const hit = Boolean(configured) && timingSafeEqualStr(password, configured);
+    if (hit) dealerHit = login;
+  }
+
+  if (staffHit) return { role: ROLE_STAFF, salesperson: null };
+  if (dealerHit) return { role: ROLE_DEALER, salesperson: dealerHit.salesperson };
   return null;
 }
 
@@ -65,7 +69,7 @@ module.exports = async function handler(req, res) {
   const name = clean(body.name, 80);
   const password = typeof body.password === 'string' ? body.password : '';
 
-  if (!Object.prototype.hasOwnProperty.call(DEALER_PASSWORD_ENV, slug)) {
+  if (!isKnownDealer(slug)) {
     return res.status(404).json({ ok: false, error: 'Unknown dealer.' });
   }
   if (!name) {
@@ -75,7 +79,9 @@ module.exports = async function handler(req, res) {
     return res.status(400).json({ ok: false, error: 'Please enter the password.' });
   }
 
-  if (!process.env.BUYER_ASSIST_STAFF_PASSWORD && !process.env[DEALER_PASSWORD_ENV[slug]]) {
+  const anyConfigured = Boolean(process.env.BUYER_ASSIST_STAFF_PASSWORD)
+    || loginsFor(slug).some((login) => Boolean(process.env[login.passwordEnv]));
+  if (!anyConfigured) {
     console.error('dealer/login: no passwords configured for ' + slug);
     return res.status(500).json({ ok: false, error: 'Dealer login is not configured yet.' });
   }
@@ -84,19 +90,25 @@ module.exports = async function handler(req, res) {
     return res.status(429).json({ ok: false, error: 'Too many attempts. Please wait a few minutes and try again.' });
   }
 
-  let role;
+  let login;
   try {
-    role = resolveRole(password, slug);
+    login = resolveLogin(password, slug);
   } catch (err) {
     console.error('dealer/login: ' + err.message);
     return res.status(500).json({ ok: false, error: 'Could not sign you in right now.' });
   }
 
   // One message for every failure — never reveal whether the password was
-  // close, or which role it nearly matched.
-  if (!role) {
+  // close, or which role/salesperson it nearly matched.
+  if (!login) {
     return res.status(401).json({ ok: false, error: 'Incorrect password.' });
   }
+
+  // For a scoped dealer login, identity comes from the password, not from
+  // whatever the browser typed into "your name" — that field only matters
+  // for staff, who share one password between several people.
+  const { role, salesperson } = login;
+  const displayName = salesperson || name;
 
   try {
     const dealer = await getDealerBySlug(slug);
@@ -104,10 +116,10 @@ module.exports = async function handler(req, res) {
       console.error('dealer/login: no dealer row for slug ' + slug);
       return res.status(500).json({ ok: false, error: 'Dealer record is missing. Contact Buyer Assist.' });
     }
-    setSessionCookie(res, { role, dealerSlug: slug, name });
+    setSessionCookie(res, { role, dealerSlug: slug, name: displayName, salesperson });
     return res.status(200).json({
       ok: true,
-      session: { role, name, dealerSlug: slug, dealerName: dealer.name },
+      session: { role, name: displayName, dealerSlug: slug, dealerName: dealer.name, salesperson },
     });
   } catch (err) {
     console.error('dealer/login: ' + err.message);

@@ -8,9 +8,13 @@
 //
 // Two roles, decided server-side by which password was used at login:
 //   staff  — Buyer Assist. Add/edit deals, change stage, add notes, archive.
-//   dealer — KO Cars. Read-only view of KO Cars deals.
-// The read-only rule is enforced in /api/dealer/*; hiding controls here is
-// only cosmetic. Never treat this file as a security boundary.
+//   dealer — a KO Cars salesperson. Read-only, and scoped to just their own
+//            deals — each salesperson has their own password (see
+//            api/_dealer-config.js), so there is no login that shows every
+//            KO Cars deal except staff.
+// Both the read-only rule and the salesperson scope are enforced in
+// /api/dealer/*; hiding controls or deals here is only cosmetic. Never treat
+// this file as a security boundary.
 //
 // The vehicle is the headline on every card, because KO Cars remember
 // customers by the car, not the name.
@@ -196,7 +200,7 @@ const DEALER_EMPTY_FORM = {
   customer_name: '', customer_mobile: '', customer_email: '',
   vehicle_year: '', vehicle_make: '', vehicle_model: '', vehicle_variant: '',
   vehicle_registration: '', vehicle_stock_number: '', vehicle_price: '',
-  status: 'New Referral', initial_note: '',
+  status: 'New Referral', salesperson: '', initial_note: '',
 };
 
 // ---- quick entry --------------------------------------------------------
@@ -354,7 +358,7 @@ function dealerVehicleFromFields(f) {
     .filter(Boolean).join(' ').trim();
 }
 
-function DealerDealForm({ deal, statuses, onClose, onSaved }) {
+function DealerDealForm({ deal, statuses, salespeople, onClose, onSaved }) {
   const editing = Boolean(deal);
   const [f, setF] = useStateDealer(() => {
     if (!deal) return DEALER_EMPTY_FORM;
@@ -565,6 +569,17 @@ function DealerDealForm({ deal, statuses, onClose, onSaved }) {
             </div>
           )}
 
+          {salespeople.length > 0 && (
+            <div className="bp-field">
+              <label htmlFor="d-salesperson">Salesperson</label>
+              <select id="d-salesperson" className="cr-select" value={f.salesperson} onChange={set('salesperson')}>
+                <option value="">Unassigned</option>
+                {salespeople.map((s) => <option key={s} value={s}>{s}</option>)}
+              </select>
+              <p className="deal-hint">Who this deal belongs to. Only they (and staff) can see it in the tracker.</p>
+            </div>
+          )}
+
           <div className="bp-field">
             <label htmlFor="d-dealer">Dealer</label>
             <input id="d-dealer" type="text" value="KO Cars" readOnly disabled />
@@ -662,6 +677,8 @@ function DealerDealCard({ deal, canEdit, statuses, onChanged, onEdit }) {
         {deal.archived && <span className="deal-badge tone-archived">Archived</span>}
       </div>
 
+      {deal.salesperson && <p className="deal-updated">Salesperson: {deal.salesperson}</p>}
+
       <p className="deal-updated">Last updated: {dealerDateTime(deal.updated_at, ' at ')}</p>
 
       {latest ? (
@@ -737,6 +754,7 @@ function DealerKoCarsPage() {
   const [booting, setBooting] = useStateDealer(true);
   const [session, setSession] = useStateDealer(null);
   const [statuses, setStatuses] = useStateDealer([]);
+  const [salespeople, setSalespeople] = useStateDealer([]);
   const [deals, setDeals] = useStateDealer([]);
   const [fetchedAt, setFetchedAt] = useStateDealer(null);
   const [loadError, setLoadError] = useStateDealer('');
@@ -755,6 +773,7 @@ function DealerKoCarsPage() {
     const { res, json } = await dealerFetch('/api/dealer/session');
     if (res.ok && json && json.ok) {
       setStatuses(json.statuses || []);
+      setSalespeople(json.salespeople || []);
       setSession(json.authenticated ? json.session : null);
       return json.authenticated;
     }
@@ -857,7 +876,11 @@ function DealerKoCarsPage() {
           <div className="deal-header-right">
             <p className="deal-signed-in">
               {session.name}
-              <span className="deal-role">{canEdit ? 'Buyer Assist staff' : 'KO Cars, view only'}</span>
+              <span className="deal-role">
+                {canEdit
+                  ? 'Buyer Assist staff'
+                  : session.salesperson ? `KO Cars — ${session.salesperson}, view only` : 'KO Cars, view only'}
+              </span>
             </p>
             <button type="button" className="btn ghost deal-btn-sm" onClick={signOut}>Sign out</button>
           </div>
@@ -933,6 +956,7 @@ function DealerKoCarsPage() {
         <DealerDealForm
           deal={formFor === 'new' ? null : formFor}
           statuses={statuses}
+          salespeople={salespeople}
           onClose={() => setFormFor(null)}
           onSaved={() => { setFormFor(null); refresh(); }}
         />

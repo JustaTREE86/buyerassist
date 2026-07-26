@@ -35,6 +35,7 @@ const MAX = {
   vehicle_variant: 80,
   vehicle_registration: 20,
   vehicle_stock_number: 40,
+  salesperson: 40,
   note: 4000,
   author: 80,
 };
@@ -120,6 +121,11 @@ function validateDealInput(input, { partial = false } = {}) {
     vehicle_stock_number: optional(body.vehicle_stock_number, MAX.vehicle_stock_number),
     vehicle_price,
     status,
+    // Which KO Cars salesperson this deal belongs to. Not required — the UI
+    // offers a fixed dropdown (see _dealer-config.js), but this only cleans
+    // and caps the value rather than checking it against that list, so a
+    // roster change here never needs a matching change in this file.
+    salesperson: optional(body.salesperson, MAX.salesperson),
   };
 
   return { errors, record };

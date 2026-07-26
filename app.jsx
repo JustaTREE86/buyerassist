@@ -94,9 +94,16 @@ const ROUTES = [
   // Hidden dealer dashboards. Listed here so the URL resolves on a hard
   // refresh — deliberately not linked from Nav, the footer or the sitemap.
   { id: 'dealer-ko-cars', path: '/dealer/ko-cars' },
+  // Josh's private commission tracker for Eve's cut — password-gated, not
+  // linked from Nav, the footer or the sitemap.
+  { id: 'eve', path: '/eve' },
   // Josh's personal AFOS quick-quote link, sent directly to his own clients —
   // not linked from Nav, the footer or the sitemap.
   { id: 'autozone-apply', path: '/autozone-apply' },
+  // Same quick-quote embed as autozone-apply, at a clean vanity URL for Josh
+  // to post publicly (Facebook, business cards, etc). Not linked from Nav,
+  // the footer or the sitemap.
+  { id: 'apply-josh', path: '/apply/josh' },
   // AutoZone QLD staff ad-copy tool — internal reference for the dealership,
   // not linked from Nav, the footer or the sitemap.
   { id: 'autozone-staff', path: '/autozone-staff' },
@@ -114,7 +121,9 @@ const TITLES = {
   apply: 'Apply — The Buyer Assist Group',
   broker: 'Our Team — The Buyer Assist Group',
   'dealer-ko-cars': 'KO Cars Deal Tracker — The Buyer Assist Group',
+  eve: 'Eve Split — The Buyer Assist Group',
   'autozone-apply': 'Quick Quote — The Buyer Assist Group',
+  'apply-josh': 'Apply with Josh — The Buyer Assist Group',
   'autozone-staff': 'AutoZone Staff Ad Copy — The Buyer Assist Group',
 };
 
@@ -128,6 +137,7 @@ function parsePath(pathname) {
   const clean = pathname.replace(/\/+$/, '') || '/';
   if (clean === '/staff/debt-busters') return { page: 'staff-debt-busters', state: {} };
   if (clean === '/dealer/ko-cars') return { page: 'dealer-ko-cars', state: {} };
+  if (clean === '/eve') return { page: 'eve', state: {} };
   if (clean.startsWith('/team/')) return { page: 'broker', state: { id: clean.slice('/team/'.length) } };
   const match = ROUTES.find(r => r.path === clean);
   return match ? { page: match.id, state: {} } : { page: 'home', state: {} };
@@ -437,9 +447,21 @@ function App() {
     return <DealerKoCarsPage/>;
   }
 
+  // Josh's private commission tracker for Eve's cut — same isolation: no nav,
+  // footer, floating buttons or tweaks panel, and no public chrome.
+  if (page === 'eve') {
+    return <EveTrackerPage/>;
+  }
+
   // Josh's personal quick-quote embed — same isolation: nothing that leads
   // a client back into the marketing site or the tweaks panel.
   if (page === 'autozone-apply') {
+    return <AutozoneApplyPage/>;
+  }
+
+  // Same embed as autozone-apply, at the /apply/josh vanity URL Josh shares
+  // publicly. Same isolation: no nav, footer, floating buttons or tweaks panel.
+  if (page === 'apply-josh') {
     return <AutozoneApplyPage/>;
   }
 

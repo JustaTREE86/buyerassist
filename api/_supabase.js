@@ -59,7 +59,7 @@ const DEAL_COLUMNS = [
   'id', 'customer_name', 'customer_mobile', 'customer_email',
   'vehicle_year', 'vehicle_make', 'vehicle_model', 'vehicle_variant',
   'vehicle_registration', 'vehicle_stock_number', 'vehicle_price',
-  'status', 'archived', 'created_at', 'updated_at', 'created_by', 'updated_by',
+  'status', 'salesperson', 'archived', 'created_at', 'updated_at', 'created_by', 'updated_by',
 ].join(',');
 
 const NOTE_COLUMNS = 'id,note,created_at,created_by';
@@ -71,10 +71,14 @@ async function getDealerBySlug(slug) {
 
 // Lists a single dealer's deals with their full note history embedded, newest
 // note first. dealerId is always applied — there is no "all deals" query.
-async function listDealsForDealer(dealerId, { archived = false } = {}) {
+// When salesperson is passed (a scoped dealer session), it's applied too, so
+// a salesperson-scoped login can only ever get back their own deals — the
+// same guarantee dealerId gives against other dealers.
+async function listDealsForDealer(dealerId, { archived = false, salesperson = null } = {}) {
   const path =
     `deals?dealer_id=eq.${enc(dealerId)}` +
     `&archived=is.${archived ? 'true' : 'false'}` +
+    (salesperson ? `&salesperson=eq.${enc(salesperson)}` : '') +
     `&select=${enc(DEAL_COLUMNS)},deal_notes(${enc(NOTE_COLUMNS)})` +
     `&order=updated_at.desc` +
     `&deal_notes.order=created_at.desc`;
@@ -123,6 +127,11 @@ async function insertNote(dealId, note, author) {
 }
 
 module.exports = {
+  // Low-level REST access, reused by the Eve commission tracker (api/_eve.js).
+  // Callers that touch dealer data must still scope every query by dealer_id;
+  // eve_commissions has no such scope because it is single-owner (Josh only).
+  sbRequest,
+  enc,
   isConfigured,
   getDealerBySlug,
   listDealsForDealer,

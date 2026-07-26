@@ -50,8 +50,8 @@ function timingSafeEqualStr(a, b) {
   return crypto.timingSafeEqual(bufA, bufB);
 }
 
-function signSession({ role, dealerSlug, name }) {
-  const payload = { role, dealerSlug, name, exp: Date.now() + SESSION_TTL_MS };
+function signSession({ role, dealerSlug, name, salesperson }) {
+  const payload = { role, dealerSlug, name, salesperson: salesperson || null, exp: Date.now() + SESSION_TTL_MS };
   const body = b64url(JSON.stringify(payload));
   return `${body}.${hmac(body)}`;
 }
@@ -75,6 +75,7 @@ function verifySessionToken(token) {
   if (payload.role !== ROLE_STAFF && payload.role !== ROLE_DEALER) return null;
   if (typeof payload.exp !== 'number' || Date.now() > payload.exp) return null;
   if (typeof payload.dealerSlug !== 'string' || !payload.dealerSlug) return null;
+  if (payload.salesperson != null && typeof payload.salesperson !== 'string') return null;
   return payload;
 }
 
