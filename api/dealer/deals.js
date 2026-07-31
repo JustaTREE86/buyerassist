@@ -8,10 +8,9 @@
 //  - The dealer scope always comes from the signed session cookie, never from
 //    the request. A caller cannot ask for another dealer's deals by passing a
 //    different id, so there is no endpoint here that returns "all deals".
-//  - Salesperson scope works the same way: a login tied to one salesperson
-//    (see _dealer-config.js) carries that name in the signed session, and
-//    listDealsForDealer filters on it server-side. There is no request
-//    parameter that can widen it back out.
+//  - Every login for a dealer sees that dealer's whole board. session.salesperson
+//    names who is signed in (for notes and the header); it is deliberately not
+//    a filter, so Alan and Charlie see the same deals.
 //  - Writes go through requireStaff, so a dealer session is read-only on the
 //    server. Hiding the buttons in the UI is only cosmetic.
 const { requireSession, requireStaff } = require('../_session');
@@ -27,9 +26,9 @@ const {
 
 async function handleGet(req, res, session, dealer) {
   const archived = String((req.query && req.query.archived) || 'false') === 'true';
-  // A scoped dealer login (session.salesperson set) only ever gets its own
-  // deals back — staff and any non-scoped session get the dealer's full list.
-  const deals = await listDealsForDealer(dealer.id, { archived, salesperson: session.salesperson || null });
+  // Whole board, every time. Staff and dealer logins get the same list — the
+  // only difference between them is that a dealer session cannot write.
+  const deals = await listDealsForDealer(dealer.id, { archived });
   return res.status(200).json({
     ok: true,
     deals,

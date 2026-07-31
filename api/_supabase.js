@@ -71,14 +71,12 @@ async function getDealerBySlug(slug) {
 
 // Lists a single dealer's deals with their full note history embedded, newest
 // note first. dealerId is always applied — there is no "all deals" query.
-// When salesperson is passed (a scoped dealer session), it's applied too, so
-// a salesperson-scoped login can only ever get back their own deals — the
-// same guarantee dealerId gives against other dealers.
-async function listDealsForDealer(dealerId, { archived = false, salesperson = null } = {}) {
+// Within a dealer there is no further filter: every login for that dealer sees
+// the whole board, salesperson column included.
+async function listDealsForDealer(dealerId, { archived = false } = {}) {
   const path =
     `deals?dealer_id=eq.${enc(dealerId)}` +
     `&archived=is.${archived ? 'true' : 'false'}` +
-    (salesperson ? `&salesperson=eq.${enc(salesperson)}` : '') +
     `&select=${enc(DEAL_COLUMNS)},deal_notes(${enc(NOTE_COLUMNS)})` +
     `&order=updated_at.desc` +
     `&deal_notes.order=created_at.desc`;

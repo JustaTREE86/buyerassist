@@ -1692,39 +1692,144 @@ h1, h2, h3, h4 { margin: 0; font-family: var(--serif); font-weight: 400; letter-
 }
 .deal-empty { color: var(--muted); padding: 40px 0; font-size: 16px; }
 
-/* ---- cards ---- */
-.deal-grid {
-  display: grid; gap: 18px;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+/* ---- tabs ---- */
+/* Active board / Declined-Lost / Archived. Declined work leaves the live
+   board completely rather than sitting in it greyed out. */
+.board-tabs {
+  display: flex; gap: 4px; flex-wrap: wrap;
+  margin-top: 22px; border-bottom: 1px solid var(--line);
 }
-.deal-card {
-  background: var(--bone); border: 1px solid var(--line);
-  border-radius: 10px; padding: 22px;
-  display: flex; flex-direction: column;
+.board-tab {
+  background: none; border: 0; border-bottom: 3px solid transparent;
+  padding: 10px 16px; margin-bottom: -1px;
+  font: inherit; font-size: 15px; font-weight: 600; color: var(--muted);
+  cursor: pointer; display: flex; align-items: center; gap: 8px;
 }
-/* The headline. Biggest text on the page, by a clear margin. */
-.deal-vehicle {
-  font-family: var(--sans);
-  font-size: clamp(21px, 2.2vw, 26px);
-  font-weight: 700; line-height: 1.25;
-  color: var(--ink); letter-spacing: -0.01em;
-  margin-bottom: 8px;
+.board-tab:hover { color: var(--ink); }
+.board-tab:focus-visible { outline: 2px solid var(--gold); outline-offset: -2px; border-radius: 4px; }
+.board-tab.is-active { color: var(--ink); border-bottom-color: var(--gold); }
+.board-tab-count {
+  font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums;
+  background: var(--cream); color: var(--muted);
+  border-radius: 999px; padding: 2px 8px; min-width: 22px; text-align: center;
 }
-.deal-vehicle-meta {
-  display: flex; flex-wrap: wrap; gap: 6px 14px;
-  font-size: 13px; color: var(--muted);
-  font-variant-numeric: tabular-nums;
-  margin-bottom: 16px;
-}
-.deal-customer { margin-bottom: 16px; line-height: 1.6; }
-/* Customer name is deliberately smaller than the vehicle. */
-.deal-customer-name { font-size: 16px; font-weight: 600; color: var(--ink); }
-.deal-customer p { font-size: 15px; }
-.deal-customer a { color: var(--ink); text-decoration: underline; text-underline-offset: 2px; }
-.deal-customer a:hover { color: var(--gold-2); }
+.board-tab.is-active .board-tab-count { background: var(--ink); color: #FFFFFF; }
 
-.deal-status-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
-.deal-status-row .deal-label { margin-bottom: 0; }
+/* ---- board ---- */
+/* One row per deal, grouped by stage. Column widths are fixed so every group
+   lines up down the page, and the vehicle column is the widest because the
+   dealership reads the board by car. */
+.board { display: flex; flex-direction: column; gap: 20px; }
+.board-group {
+  border: 1px solid var(--line); border-radius: 10px;
+  background: var(--bone); overflow: hidden;
+}
+.board-group-head { margin: 0; font-family: var(--sans); }
+.board-group-btn {
+  width: 100%; display: flex; align-items: center; gap: 10px;
+  background: none; border: 0; border-left: 6px solid var(--line);
+  padding: 12px 16px; cursor: pointer;
+  font: inherit; font-size: 16px; font-weight: 700; color: var(--ink);
+  text-align: left;
+}
+.board-group-btn:focus-visible { outline: 2px solid var(--gold); outline-offset: -2px; }
+.board-group-name { letter-spacing: -0.01em; }
+.board-group-count {
+  font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums;
+  background: rgba(255, 255, 255, 0.75); color: inherit;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 999px; padding: 2px 9px;
+}
+/* Stage colour on the group header mirrors the status badge tones. */
+.board-group-head.tone-new       .board-group-btn { background: #F6F8FB; border-left-color: #8FA3C0; }
+.board-group-head.tone-progress  .board-group-btn { background: #F1F7FD; border-left-color: #2F6FA8; }
+.board-group-head.tone-attention .board-group-btn { background: #FEF9F0; border-left-color: #D19A2E; }
+.board-group-head.tone-good      .board-group-btn { background: #F1F9F4; border-left-color: #2E8B57; }
+.board-group-head.tone-done      .board-group-btn { background: #EAF3ED; border-left-color: #14532D; }
+.board-group-head.tone-bad       .board-group-btn { background: #FDF3F2; border-left-color: #B3261E; }
+
+.board-table-wrap { overflow-x: auto; }
+.board-table {
+  width: 100%; min-width: 900px;
+  border-collapse: collapse; table-layout: fixed;
+}
+.board-table th {
+  text-align: left; padding: 9px 14px;
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.07em; color: var(--muted);
+  background: var(--paper); border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.board-cell-vehicle { width: 25%; }
+.board-cell-name    { width: 13%; }
+.board-cell-phone   { width: 12%; }
+.board-cell-email   { width: 17%; }
+.board-cell-note    { width: 21%; }
+.board-cell-status  { width: 12%; }
+
+.board-row td {
+  padding: 11px 14px; vertical-align: top;
+  font-size: 14px; line-height: 1.45; color: var(--ink);
+  border-bottom: 1px solid var(--line);
+  overflow-wrap: anywhere;
+}
+.board-row:hover td { background: var(--paper); }
+.board-row.is-open td { background: var(--paper); }
+.board-row a { color: var(--ink); text-decoration: underline; text-underline-offset: 2px; }
+.board-row a:hover { color: var(--gold-2); }
+.board-blank { color: var(--muted); }
+
+/* The headline. Biggest text in the row, by a clear margin. */
+.board-vehicle-btn {
+  display: flex; align-items: baseline; gap: 8px;
+  background: none; border: 0; padding: 0; margin: 0;
+  font: inherit; text-align: left; cursor: pointer; width: 100%;
+}
+.board-vehicle-btn:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; border-radius: 4px; }
+.board-vehicle {
+  font-size: 17px; font-weight: 700; line-height: 1.25;
+  color: var(--ink); letter-spacing: -0.01em;
+}
+.board-vehicle-btn:hover .board-vehicle { color: var(--gold-2); }
+.board-caret { font-size: 11px; color: var(--muted); }
+.board-vehicle-sub {
+  display: flex; flex-wrap: wrap; gap: 4px 12px;
+  margin-top: 3px; padding-left: 19px;
+  font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums;
+}
+.board-cell-name { font-weight: 600; }
+
+/* Two lines of the newest note is enough to know whether a deal needs you;
+   the full history is one click away in the detail panel. */
+.board-note-text {
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden; font-size: 13.5px; line-height: 1.4;
+}
+.board-note-when {
+  display: block; margin-top: 3px;
+  font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums;
+}
+
+/* Staff restage from the board itself. Styled as a pill so it reads like the
+   badge it replaces, and the stage name is always written out. */
+.board-status-select {
+  width: 100%; padding: 6px 8px; border-radius: 999px;
+  font-family: var(--sans); font-size: 12.5px; font-weight: 600;
+  border: 1px solid transparent; cursor: pointer;
+}
+.board-status-select:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
+.board-status-select.tone-new       { background: #EEF1F6; color: #0A1F3D; border-color: #C6D0E0; }
+.board-status-select.tone-progress  { background: #E7F0FA; color: #0B3D6B; border-color: #B6D3EE; }
+.board-status-select.tone-attention { background: #FDF3E3; color: #7A4E00; border-color: #EBCF9B; }
+.board-status-select.tone-good      { background: #E7F5EC; color: #14532D; border-color: #A9D8BC; }
+.board-status-select.tone-done      { background: #14532D; color: #FFFFFF; border-color: #14532D; }
+.board-status-select.tone-bad       { background: #FBEAE8; color: #8A1C13; border-color: #EFC0BA; }
+
+/* ---- expanded row ---- */
+.board-detail-cell { padding: 0; background: var(--paper); border-bottom: 1px solid var(--line); }
+.board-detail { padding: 18px; display: flex; flex-direction: column; }
+.board-detail-facts { display: flex; flex-wrap: wrap; gap: 4px 22px; }
+.board-detail-facts .deal-updated { margin-bottom: 8px; }
 
 /* Status is always written out — colour is a second signal, never the only
    one, so the badges stay readable for colour-blind users and in greyscale. */
@@ -1745,11 +1850,7 @@ h1, h2, h3, h4 { margin: 0; font-family: var(--serif); font-weight: 400; letter-
 
 .deal-updated { font-size: 13px; color: var(--muted); margin-bottom: 14px; }
 
-.deal-latest-note {
-  background: var(--cream); border-radius: 8px;
-  padding: 14px; margin-bottom: 12px;
-}
-.deal-note-empty { color: var(--muted); font-size: 14px; }
+.deal-note-empty { color: var(--muted); font-size: 14px; margin-bottom: 12px; }
 .deal-note-when {
   font-size: 12px; font-weight: 600; color: var(--muted);
   letter-spacing: 0.04em; margin-bottom: 4px;
@@ -1757,17 +1858,17 @@ h1, h2, h3, h4 { margin: 0; font-family: var(--serif); font-weight: 400; letter-
 }
 .deal-note-text { font-size: 15px; line-height: 1.55; color: var(--ink); }
 .deal-note-who { font-size: 12px; color: var(--muted); margin-top: 4px; }
-.deal-history-toggle { font-size: 14px; align-self: flex-start; margin-bottom: 12px; }
 .deal-history {
   list-style: none; margin: 0 0 12px; padding: 0;
   border-left: 2px solid var(--line);
+  max-height: 320px; overflow-y: auto;
 }
 .deal-history li { padding: 10px 0 10px 14px; }
 .deal-history li + li { border-top: 1px solid var(--line); }
 
 /* ---- staff-only tools ---- */
 .deal-staff-tools {
-  margin-top: auto; padding-top: 16px; border-top: 1px solid var(--line);
+  margin-top: 4px; padding-top: 16px; border-top: 1px solid var(--line);
 }
 .deal-note-form { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
 .deal-note-form textarea {
@@ -1778,11 +1879,6 @@ h1, h2, h3, h4 { margin: 0; font-family: var(--serif); font-weight: 400; letter-
 .deal-note-form textarea:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
 .deal-staff-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .deal-staff-row .deal-label { margin-bottom: 0; }
-.deal-stage-select {
-  flex: 1 1 150px; padding: 8px 10px; font-size: 14px;
-  font-family: var(--sans); color: var(--ink);
-  border: 1px solid var(--line); border-radius: 6px; background: var(--bone);
-}
 .deal-btn-sm { padding: 8px 14px; font-size: 13px; align-self: flex-start; }
 
 /* ---- add / edit modal ---- */
@@ -1869,9 +1965,31 @@ h1, h2, h3, h4 { margin: 0; font-family: var(--serif); font-weight: 400; letter-
 }
 
 /* ---- phones / small tablets ---- */
+/* Below the width a six-column board can hold, each row restacks into a card
+   and the column headings move onto the cells themselves. Same data, same
+   order, no sideways scrolling on a phone in the yard. */
+@media (max-width: 900px) {
+  .board-table { min-width: 0; }
+  .board-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .board-table, .board-table tbody, .board-table tr, .board-table td { display: block; width: auto; }
+  .board-row { border-bottom: 1px solid var(--line); padding: 6px 0 10px; }
+  .board-row td { border-bottom: 0; padding: 4px 14px; }
+  .board-row:hover td, .board-row.is-open td { background: transparent; }
+  .board-row td:not(.board-cell-vehicle)::before {
+    content: attr(data-label);
+    display: block; font-size: 10.5px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted);
+    margin-bottom: 1px;
+  }
+  .board-cell-status { padding-top: 8px; }
+  .board-status-select { width: auto; min-width: 200px; }
+  .board-note-text { -webkit-line-clamp: 3; }
+  .board-detail-cell { display: block; padding: 0 14px 14px; }
+  .board-detail { padding: 14px 0 0; border-top: 1px solid var(--line); }
+}
+
 @media (max-width: 640px) {
   .deal-page { padding: 16px; }
-  .deal-grid { grid-template-columns: 1fr; }
   .deal-controls { padding: 14px; gap: 12px; }
   .deal-search, .deal-filter, .deal-add-btn { flex: 1 1 100%; }
   .deal-add-btn { width: 100%; }

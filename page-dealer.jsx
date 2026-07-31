@@ -8,16 +8,17 @@
 //
 // Two roles, decided server-side by which password was used at login:
 //   staff  — Buyer Assist. Add/edit deals, change stage, add notes, archive.
-//   dealer — a KO Cars salesperson. Read-only, and scoped to just their own
-//            deals — each salesperson has their own password (see
-//            api/_dealer-config.js), so there is no login that shows every
-//            KO Cars deal except staff.
-// Both the read-only rule and the salesperson scope are enforced in
-// /api/dealer/*; hiding controls or deals here is only cosmetic. Never treat
-// this file as a security boundary.
+//   dealer — a KO Cars salesperson. Read-only, but sees the whole board. Each
+//            salesperson has their own password (see api/_dealer-config.js)
+//            purely so notes and the header name the right person — it does
+//            not narrow what they can see.
+// The read-only rule is enforced in /api/dealer/*; hiding controls here is
+// only cosmetic. Never treat this file as a security boundary.
 //
-// The vehicle is the headline on every card, because KO Cars remember
-// customers by the car, not the name.
+// Laid out like a board, not a card wall: one row per deal, grouped by stage,
+// with the vehicle as the first and largest column because KO Cars recognise
+// deals by the car, not the name. Declined / cancelled / unreachable deals
+// leave the active board and live on their own "Declined / Lost" tab.
 // =============================================================
 const {
   useState: useStateDealer,
@@ -55,12 +56,29 @@ const DEALER_STATUS_TONE = {
   'Cancelled': 'bad',
 };
 
+// Rows are grouped by stage, so "sort by stage" would be meaningless here —
+// this only orders the rows inside each group.
 const DEALER_SORTS = [
   { id: 'recent', label: 'Most recently updated' },
   { id: 'oldest', label: 'Oldest update' },
   { id: 'vehicle', label: 'Vehicle make and model' },
   { id: 'customer', label: 'Customer name' },
-  { id: 'stage', label: 'Deal stage' },
+];
+
+// A deal at one of these stages is off the active board — it moves to the
+// "Declined / Lost" tab instead of cluttering the live pipeline. Nothing is
+// deleted or archived by this: it is only which tab the row appears on, and
+// changing the stage back moves it straight back to the active board.
+const DEALER_LOST_STATUSES = ['Declined', 'Cancelled', 'Unable to Contact'];
+
+function dealerIsLost(deal) {
+  return DEALER_LOST_STATUSES.includes(deal.status);
+}
+
+const DEALER_VIEWS = [
+  { id: 'active', label: 'Active board' },
+  { id: 'lost', label: 'Declined / Lost' },
+  { id: 'archived', label: 'Archived' },
 ];
 
 // Swaps the sitewide <meta name="robots"> to noindex while this page is
@@ -576,7 +594,7 @@ function DealerDealForm({ deal, statuses, salespeople, onClose, onSaved }) {
                 <option value="">Unassigned</option>
                 {salespeople.map((s) => <option key={s} value={s}>{s}</option>)}
               </select>
-              <p className="deal-hint">Who this deal belongs to. Only they (and staff) can see it in the tracker.</p>
+              <p className="deal-hint">Who owns this deal at KO Cars. Everyone at KO Cars sees every deal either way.</p>
             </div>
           )}
 
@@ -600,10 +618,14 @@ function DealerDealForm({ deal, statuses, salespeople, onClose, onSaved }) {
   );
 }
 
-// ---- one deal card ------------------------------------------------------
+// ---- one board row ------------------------------------------------------
+//
+// Renders as two <tr>s: the row itself, and the detail panel underneath it
+// when the row is open. Clicking the vehicle opens the detail — the whole row
+// is deliberately not a click target, so the phone and email links inside it
+// stay ordinary links.
 
-function DealerDealCard({ deal, canEdit, statuses, onChanged, onEdit }) {
-  const [open, setOpen] = useStateDealer(false);
+function DealerDealRow({ deal, canEdit, statuses, open, onToggle, onChanged, onEdit }) {
   const [noteText, setNoteText] = useStateDealer('');
   const [busy, setBusy] = useStateDealer(false);
   const [error, setError] = useStateDealer('');
@@ -611,6 +633,7 @@ function DealerDealCard({ deal, canEdit, statuses, onChanged, onEdit }) {
   const notes = deal.deal_notes || [];
   const latest = notes[0];
   const title = dealerVehicleTitle(deal);
+  const tone = DEALER_STATUS_TONE[deal.status] || 'new';
 
   const addNote = async (e) => {
     e.preventDefault();
@@ -651,98 +674,180 @@ function DealerDealCard({ deal, canEdit, statuses, onChanged, onEdit }) {
   };
 
   return (
-    <article className="deal-card">
-      {/* Vehicle first and largest — KO Cars identify deals by the car. */}
-      <h2 className="deal-vehicle">{title || 'Vehicle details to be confirmed'}</h2>
+    <React.Fragment>
+      <tr className={`board-row${open ? ' is-open' : ''}`}>
+        {/* Vehicle first and largest — KO Cars identify deals by the car. */}
+        <td className="board-cell board-cell-vehicle" data-label="Vehicle">
+          <button type="button" className="board-vehicle-btn" aria-expanded={open}
+                  onClick={onToggle}>
+            <span className="board-caret" aria-hidden="true">{open ? '▾' : '▸'}</span>
+            <span className="board-vehicle">{title || 'Vehicle to be confirmed'}</span>
+          </button>
+          <span className="board-vehicle-sub">
+            {deal.vehicle_price !== null && deal.vehicle_price !== undefined && (
+              <span>${formatMoney(deal.vehicle_price)}</span>
+            )}
+            {deal.vehicle_registration && <span>{deal.vehicle_registration}</span>}
+            {deal.archived && <span className="deal-badge tone-archived">Archived</span>}
+          </span>
+        </td>
 
-      <p className="deal-vehicle-meta">
-        {deal.vehicle_price !== null && deal.vehicle_price !== undefined && (
-          <span>${formatMoney(deal.vehicle_price)}</span>
-        )}
-      </p>
+        <td className="board-cell board-cell-name" data-label="Customer">{deal.customer_name}</td>
 
-      <div className="deal-customer">
-        <p className="deal-customer-name">{deal.customer_name}</p>
-        {deal.customer_mobile && (
-          <p><a href={dealerTelHref(deal.customer_mobile)}>{deal.customer_mobile}</a></p>
-        )}
-        {deal.customer_email && (
-          <p><a href={`mailto:${deal.customer_email}`}>{deal.customer_email}</a></p>
-        )}
-      </div>
+        <td className="board-cell board-cell-phone" data-label="Phone">
+          {deal.customer_mobile
+            ? <a href={dealerTelHref(deal.customer_mobile)}>{deal.customer_mobile}</a>
+            : <span className="board-blank">—</span>}
+        </td>
 
-      <div className="deal-status-row">
-        <span className="deal-label">Status:</span>
-        <DealerStatusBadge status={deal.status} large />
-        {deal.archived && <span className="deal-badge tone-archived">Archived</span>}
-      </div>
+        <td className="board-cell board-cell-email" data-label="Email">
+          {deal.customer_email
+            ? <a href={`mailto:${deal.customer_email}`}>{deal.customer_email}</a>
+            : <span className="board-blank">—</span>}
+        </td>
 
-      {deal.salesperson && <p className="deal-updated">Salesperson: {deal.salesperson}</p>}
+        <td className="board-cell board-cell-note" data-label="Latest note">
+          {latest ? (
+            <React.Fragment>
+              <span className="board-note-text">{latest.note}</span>
+              <span className="board-note-when">
+                {dealerDateTime(latest.created_at, ', ')}{latest.created_by ? ` · ${latest.created_by}` : ''}
+              </span>
+            </React.Fragment>
+          ) : (
+            <span className="board-blank">No notes yet</span>
+          )}
+        </td>
 
-      <p className="deal-updated">Last updated: {dealerDateTime(deal.updated_at, ' at ')}</p>
-
-      {latest ? (
-        <div className="deal-latest-note">
-          <p className="deal-note-when">{dealerDateTime(latest.created_at, ', ')}</p>
-          <p className="deal-note-text">{latest.note}</p>
-          {latest.created_by && <p className="deal-note-who">by {latest.created_by}</p>}
-        </div>
-      ) : (
-        <p className="deal-latest-note deal-note-empty">No notes yet.</p>
-      )}
-
-      {notes.length > 1 && (
-        <button type="button" className="btn link deal-history-toggle"
-                aria-expanded={open} onClick={() => setOpen((v) => !v)}>
-          {open ? 'Hide history' : `View full history (${notes.length} updates)`}
-        </button>
-      )}
-
-      {open && (
-        <ol className="deal-history">
-          {notes.map((n) => (
-            <li key={n.id}>
-              <p className="deal-note-when">{dealerDateTime(n.created_at, ', ')}</p>
-              <p className="deal-note-text">{n.note}</p>
-              {n.created_by && <p className="deal-note-who">by {n.created_by}</p>}
-            </li>
-          ))}
-        </ol>
-      )}
-
-      {error && <p role="alert" className="deal-error">{error}</p>}
-
-      {/* Staff-only controls. The server enforces this too — a dealer session
-          is rejected by /api/dealer/* even if these were forced into the DOM. */}
-      {canEdit && (
-        <div className="deal-staff-tools">
-          <form onSubmit={addNote} className="deal-note-form">
-            <label htmlFor={`note-${deal.id}`} className="deal-label">Add an update</label>
-            <textarea id={`note-${deal.id}`} rows={2} value={noteText}
-                      onChange={(e) => setNoteText(e.target.value)}
-                      placeholder="Customer has supplied bank statements…" />
-            <button type="submit" className="btn primary deal-btn-sm"
-                    disabled={busy || !noteText.trim()}>
-              {busy ? 'Saving…' : 'Add note'}
-            </button>
-          </form>
-
-          <div className="deal-staff-row">
-            <label htmlFor={`stage-${deal.id}`} className="deal-label">Stage</label>
-            <select id={`stage-${deal.id}`} className="cr-select deal-stage-select"
-                    value={deal.status} disabled={busy}
+        {/* Staff change the stage straight from the board; everyone else reads
+            it. The written status is always shown, colour is only a second
+            signal. The server enforces the read-only rule either way. */}
+        <td className="board-cell board-cell-status" data-label="Status">
+          {canEdit ? (
+            <select className={`board-status-select tone-${tone}`} value={deal.status} disabled={busy}
+                    aria-label={`Stage for ${title || deal.customer_name}`}
                     onChange={(e) => patchDeal({ status: e.target.value })}>
               {statuses.map((s) => <option key={s} value={s}>{s}</option>)}
             </select>
-            <button type="button" className="btn ghost deal-btn-sm" onClick={() => onEdit(deal)}>Edit</button>
-            <button type="button" className="btn ghost deal-btn-sm" disabled={busy}
-                    onClick={() => patchDeal({ archived: !deal.archived })}>
-              {deal.archived ? 'Restore' : 'Archive'}
-            </button>
-          </div>
+          ) : (
+            <DealerStatusBadge status={deal.status} />
+          )}
+        </td>
+      </tr>
+
+      {open && (
+        <tr className="board-detail-row">
+          <td className="board-detail-cell" colSpan={6}>
+            <div className="board-detail">
+              <div className="board-detail-facts">
+                <p className="deal-updated">Last updated: {dealerDateTime(deal.updated_at, ' at ')}</p>
+                {deal.salesperson && <p className="deal-updated">Salesperson: {deal.salesperson}</p>}
+                {deal.vehicle_stock_number && <p className="deal-updated">Stock #: {deal.vehicle_stock_number}</p>}
+              </div>
+
+              {notes.length > 0 ? (
+                <ol className="deal-history">
+                  {notes.map((n) => (
+                    <li key={n.id}>
+                      <p className="deal-note-when">{dealerDateTime(n.created_at, ', ')}</p>
+                      <p className="deal-note-text">{n.note}</p>
+                      {n.created_by && <p className="deal-note-who">by {n.created_by}</p>}
+                    </li>
+                  ))}
+                </ol>
+              ) : (
+                <p className="deal-note-empty">No notes on this deal yet.</p>
+              )}
+
+              {error && <p role="alert" className="deal-error">{error}</p>}
+
+              {/* Staff-only controls. The server enforces this too — a dealer
+                  session is rejected by /api/dealer/* even if these were
+                  forced into the DOM. */}
+              {canEdit && (
+                <div className="deal-staff-tools">
+                  <form onSubmit={addNote} className="deal-note-form">
+                    <label htmlFor={`note-${deal.id}`} className="deal-label">Add an update</label>
+                    <textarea id={`note-${deal.id}`} rows={2} value={noteText}
+                              onChange={(e) => setNoteText(e.target.value)}
+                              placeholder="Customer has supplied bank statements…" />
+                    <button type="submit" className="btn primary deal-btn-sm"
+                            disabled={busy || !noteText.trim()}>
+                      {busy ? 'Saving…' : 'Add note'}
+                    </button>
+                  </form>
+
+                  <div className="deal-staff-row">
+                    <button type="button" className="btn ghost deal-btn-sm" onClick={() => onEdit(deal)}>Edit deal</button>
+                    <button type="button" className="btn ghost deal-btn-sm" disabled={busy}
+                            onClick={() => patchDeal({ archived: !deal.archived })}>
+                      {deal.archived ? 'Restore' : 'Archive'}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </td>
+        </tr>
+      )}
+
+      {/* A failed stage change happens in the row, not the detail panel, so the
+          message has to be reachable without opening it. */}
+      {error && !open && (
+        <tr className="board-detail-row">
+          <td className="board-detail-cell" colSpan={6}>
+            <p role="alert" className="deal-error">{error}</p>
+          </td>
+        </tr>
+      )}
+    </React.Fragment>
+  );
+}
+
+// ---- one stage group ----------------------------------------------------
+//
+// The board's equivalent of a Monday group: a coloured stage header with a
+// count, and the rows for that stage underneath. Column widths are fixed in
+// CSS so every group's columns line up down the page.
+
+function DealerBoardGroup({ status, deals, collapsed, onToggleGroup, openIds, onToggleRow, ...rowProps }) {
+  const tone = DEALER_STATUS_TONE[status] || 'new';
+  const headingId = `group-${status.replace(/\s+/g, '-').toLowerCase()}`;
+
+  return (
+    <section className="board-group" aria-labelledby={headingId}>
+      <h2 className={`board-group-head tone-${tone}`}>
+        <button type="button" className="board-group-btn" id={headingId}
+                aria-expanded={!collapsed} onClick={() => onToggleGroup(status)}>
+          <span className="board-caret" aria-hidden="true">{collapsed ? '▸' : '▾'}</span>
+          <span className="board-group-name">{status}</span>
+          <span className="board-group-count">{deals.length}</span>
+        </button>
+      </h2>
+
+      {!collapsed && (
+        <div className="board-table-wrap">
+          <table className="board-table">
+            <thead>
+              <tr>
+                <th scope="col" className="board-cell-vehicle">Vehicle</th>
+                <th scope="col" className="board-cell-name">Customer</th>
+                <th scope="col" className="board-cell-phone">Phone</th>
+                <th scope="col" className="board-cell-email">Email</th>
+                <th scope="col" className="board-cell-note">Latest note</th>
+                <th scope="col" className="board-cell-status">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {deals.map((d) => (
+                <DealerDealRow key={d.id} deal={d} {...rowProps}
+                               open={openIds.has(d.id)} onToggle={() => onToggleRow(d.id)} />
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
-    </article>
+    </section>
   );
 }
 
@@ -761,8 +866,28 @@ function DealerKoCarsPage() {
   const [query, setQuery] = useStateDealer('');
   const [statusFilter, setStatusFilter] = useStateDealer('all');
   const [sort, setSort] = useStateDealer('recent');
-  const [showArchived, setShowArchived] = useStateDealer(false);
+  const [view, setView] = useStateDealer('active'); // active | lost | archived
+  const [collapsed, setCollapsed] = useStateDealer(() => new Set()); // collapsed stage groups
+  const [openIds, setOpenIds] = useStateDealer(() => new Set()); // expanded rows
   const [formFor, setFormFor] = useStateDealer(null); // null | 'new' | deal
+
+  const showArchived = view === 'archived';
+
+  const toggleGroup = useCallbackDealer((status) => {
+    setCollapsed((prev) => {
+      const next = new Set(prev);
+      if (next.has(status)) next.delete(status); else next.add(status);
+      return next;
+    });
+  }, []);
+
+  const toggleRow = useCallbackDealer((id) => {
+    setOpenIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }, []);
 
   // Auto-refresh must not yank data out from under an open form.
   const formOpen = formFor !== null;
@@ -823,9 +948,25 @@ function DealerKoCarsPage() {
     setDeals([]);
   };
 
+  // Which of the loaded deals belong on the tab being looked at. The archived
+  // tab has its own fetch, so everything loaded there is already in scope.
+  const inView = useMemoDealer(() => {
+    if (showArchived) return deals;
+    return deals.filter((d) => (view === 'lost' ? dealerIsLost(d) : !dealerIsLost(d)));
+  }, [deals, view, showArchived]);
+
+  // Tab counts. Only meaningful for the two tabs served by the active fetch —
+  // the archived count isn't known until that tab is opened.
+  const counts = useMemoDealer(() => {
+    if (showArchived) return null;
+    let lost = 0;
+    for (const d of deals) if (dealerIsLost(d)) lost += 1;
+    return { active: deals.length - lost, lost };
+  }, [deals, showArchived]);
+
   const visible = useMemoDealer(() => {
     const q = query.trim().toLowerCase();
-    let list = deals;
+    let list = inView;
 
     if (q) {
       list = list.filter((d) => [
@@ -840,10 +981,24 @@ function DealerKoCarsPage() {
       oldest: (a, b) => new Date(a.updated_at) - new Date(b.updated_at),
       vehicle: (a, b) => dealerVehicleTitle(a).localeCompare(dealerVehicleTitle(b)),
       customer: (a, b) => String(a.customer_name).localeCompare(String(b.customer_name)),
-      stage: (a, b) => String(a.status).localeCompare(String(b.status)),
     };
     return [...list].sort(by[sort] || by.recent);
-  }, [deals, query, statusFilter, sort]);
+  }, [inView, query, statusFilter, sort]);
+
+  // Board groups, in pipeline order. Empty stages are dropped so the board is
+  // only as long as the work actually in it.
+  const groups = useMemoDealer(() => {
+    const bucket = new Map();
+    for (const d of visible) {
+      if (!bucket.has(d.status)) bucket.set(d.status, []);
+      bucket.get(d.status).push(d);
+    }
+    const order = statuses.length ? statuses : Array.from(bucket.keys());
+    const known = order.filter((s) => bucket.has(s));
+    // Anything with a stage the server didn't list still has to appear.
+    const extra = Array.from(bucket.keys()).filter((s) => !order.includes(s));
+    return [...known, ...extra].map((status) => ({ status, deals: bucket.get(status) }));
+  }, [visible, statuses]);
 
   if (booting) {
     return <main className="deal-shell"><p className="deal-booting">Loading…</p></main>;
@@ -877,13 +1032,28 @@ function DealerKoCarsPage() {
             <p className="deal-signed-in">
               {session.name}
               <span className="deal-role">
-                {canEdit
-                  ? 'Buyer Assist staff'
-                  : session.salesperson ? `KO Cars — ${session.salesperson}, view only` : 'KO Cars, view only'}
+                {canEdit ? 'Buyer Assist staff' : 'KO Cars, view only'}
               </span>
             </p>
             <button type="button" className="btn ghost deal-btn-sm" onClick={signOut}>Sign out</button>
           </div>
+        </div>
+
+        {/* Tabs, not a filter: a declined deal leaves the live board entirely
+            and is read on its own tab, so the active board only ever shows
+            work that is still moving. */}
+        <div className="board-tabs" role="tablist" aria-label="Deal board views">
+          {DEALER_VIEWS.map((v) => {
+            const count = counts && v.id !== 'archived' ? counts[v.id] : null;
+            return (
+              <button key={v.id} type="button" role="tab" aria-selected={view === v.id}
+                      className={`board-tab${view === v.id ? ' is-active' : ''}`}
+                      onClick={() => setView(v.id)}>
+                {v.label}
+                {count !== null && <span className="board-tab-count">{count}</span>}
+              </button>
+            );
+          })}
         </div>
 
         <div className="deal-controls">
@@ -922,30 +1092,33 @@ function DealerKoCarsPage() {
             {' '}
             <button type="button" className="btn link deal-refresh-now" onClick={refresh}>Refresh now</button>
           </p>
-          <button type="button" className="btn link" onClick={() => setShowArchived((v) => !v)}>
-            {showArchived ? 'Back to active deals' : 'View archived deals'}
-          </button>
+          <p className="deal-count">
+            {visible.length} {visible.length === 1 ? 'deal' : 'deals'}
+            {visible.length !== inView.length ? ` of ${inView.length}` : ''}
+          </p>
         </div>
       </header>
 
       {loadError && <p role="alert" className="deal-error deal-error-block">{loadError}</p>}
 
-      <p className="deal-count">
-        {showArchived ? 'Archived deals' : 'Active deals'}: {visible.length}
-        {visible.length !== deals.length ? ` of ${deals.length}` : ''}
-      </p>
-
       {visible.length === 0 ? (
         <p className="deal-empty">
-          {deals.length === 0
-            ? (showArchived ? 'No archived deals.' : 'No active deals yet.')
+          {inView.length === 0
+            ? (view === 'archived'
+                ? 'No archived deals.'
+                : view === 'lost'
+                  ? 'Nothing declined or lost. Good.'
+                  : 'No active deals yet.')
             : 'No deals match your search.'}
         </p>
       ) : (
-        <div className="deal-grid">
-          {visible.map((d) => (
-            <DealerDealCard key={d.id} deal={d} canEdit={canEdit} statuses={statuses}
-                            onChanged={refresh} onEdit={(deal) => setFormFor(deal)} />
+        <div className="board">
+          {groups.map((g) => (
+            <DealerBoardGroup key={g.status} status={g.status} deals={g.deals}
+                              collapsed={collapsed.has(g.status)} onToggleGroup={toggleGroup}
+                              openIds={openIds} onToggleRow={toggleRow}
+                              canEdit={canEdit} statuses={statuses}
+                              onChanged={refresh} onEdit={(deal) => setFormFor(deal)} />
           ))}
         </div>
       )}
