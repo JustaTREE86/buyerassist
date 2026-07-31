@@ -700,12 +700,6 @@ function DealerDealRow({ deal, canEdit, statuses, open, onToggle, onChanged, onE
             : <span className="board-blank">—</span>}
         </td>
 
-        <td className="board-cell board-cell-email" data-label="Email">
-          {deal.customer_email
-            ? <a href={`mailto:${deal.customer_email}`}>{deal.customer_email}</a>
-            : <span className="board-blank">—</span>}
-        </td>
-
         <td className="board-cell board-cell-note" data-label="Latest note">
           {latest ? (
             <React.Fragment>
@@ -737,9 +731,17 @@ function DealerDealRow({ deal, canEdit, statuses, open, onToggle, onChanged, onE
 
       {open && (
         <tr className="board-detail-row">
-          <td className="board-detail-cell" colSpan={6}>
+          <td className="board-detail-cell" colSpan={5}>
             <div className="board-detail">
+              {/* Email lives here rather than in a board column — it is the
+                  contact method nobody scans the board for, and the column it
+                  used to occupy was squeezing the status out of shape. */}
               <div className="board-detail-facts">
+                {deal.customer_email && (
+                  <p className="deal-updated">
+                    Email: <a href={`mailto:${deal.customer_email}`}>{deal.customer_email}</a>
+                  </p>
+                )}
                 <p className="deal-updated">Last updated: {dealerDateTime(deal.updated_at, ' at ')}</p>
                 {deal.salesperson && <p className="deal-updated">Salesperson: {deal.salesperson}</p>}
                 {deal.vehicle_stock_number && <p className="deal-updated">Stock #: {deal.vehicle_stock_number}</p>}
@@ -795,7 +797,7 @@ function DealerDealRow({ deal, canEdit, statuses, open, onToggle, onChanged, onE
           message has to be reachable without opening it. */}
       {error && !open && (
         <tr className="board-detail-row">
-          <td className="board-detail-cell" colSpan={6}>
+          <td className="board-detail-cell" colSpan={5}>
             <p role="alert" className="deal-error">{error}</p>
           </td>
         </tr>
@@ -833,7 +835,6 @@ function DealerBoardGroup({ status, deals, collapsed, onToggleGroup, openIds, on
                 <th scope="col" className="board-cell-vehicle">Vehicle</th>
                 <th scope="col" className="board-cell-name">Customer</th>
                 <th scope="col" className="board-cell-phone">Phone</th>
-                <th scope="col" className="board-cell-email">Email</th>
                 <th scope="col" className="board-cell-note">Latest note</th>
                 <th scope="col" className="board-cell-status">Status</th>
               </tr>
