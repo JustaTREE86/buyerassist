@@ -1,4 +1,4 @@
-/* global React, ReactDOM, LogoExisting, LogoProposed, Icon, HomePage, ServicesPage, AboutPage, ApplyPage, BrokerProfilePage, PartnersPage, CreditRepairPage, CreditRepairEnquiryPage, PrivacyPage, ClientsPage, StaffDebtBustersPage, DealerKoCarsPage, AutozoneApplyPage, AutozoneStaffPage, LOANS, afosLink, useTweaks, TweaksPanel, TweakSection, TweakRadio, TweakColor */
+/* global React, ReactDOM, LogoExisting, LogoProposed, Icon, HomePage, ServicesPage, AboutPage, ApplyPage, BrokerProfilePage, PartnersPage, CreditRepairPage, CreditRepairEnquiryPage, PrivacyPage, ClientsPage, StaffDebtBustersPage, DealerKoCarsPage, AutozoneApplyPage, AutozoneStaffPage, PortalDemoPage, LOANS, afosLink, useTweaks, TweaksPanel, TweakSection, TweakRadio, TweakColor */
 const { useState: useStateApp, useEffect: useEffectApp } = React;
 
 // Makes an onClick element keyboard-operable (Enter/Space) and exposes it to
@@ -107,6 +107,10 @@ const ROUTES = [
   // AutoZone QLD staff ad-copy tool — internal reference for the dealership,
   // not linked from Nav, the footer or the sitemap.
   { id: 'autozone-staff', path: '/autozone-staff' },
+  // Referral Partner Portal sales demo — the prototype Josh shows to other
+  // brokers. Entirely invented data, no API, no login. Not linked from Nav,
+  // the footer or the sitemap; the URL is handed out directly.
+  { id: 'portal-demo', path: '/portal-demo' },
 ];
 
 const TITLES = {
@@ -125,6 +129,7 @@ const TITLES = {
   'autozone-apply': 'Quick Quote — The Buyer Assist Group',
   'apply-josh': 'Apply with Josh — The Buyer Assist Group',
   'autozone-staff': 'AutoZone Staff Ad Copy — The Buyer Assist Group',
+  'portal-demo': 'Referral Partner Portal — demo',
 };
 
 function pathFor(page, state = {}) {
@@ -468,6 +473,13 @@ function App() {
   // AutoZone QLD staff ad-copy tool — isolated internal page, no public chrome.
   if (page === 'autozone-staff') {
     return <AutozoneStaffPage/>;
+  }
+
+  // Referral Partner Portal sales demo. Isolated like the other hidden pages:
+  // a prospect being shown a product should never see Buyer Assist's nav,
+  // footer or tweaks panel around it.
+  if (page === 'portal-demo') {
+    return <PortalDemoPage/>;
   }
 
   // Apply page is full-bleed (no nav/footer)

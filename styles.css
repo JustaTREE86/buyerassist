@@ -2002,3 +2002,323 @@ h1, h2, h3, h4 { margin: 0; font-family: var(--serif); font-weight: 400; letter-
   .deal-modal-backdrop { padding: 0; }
   .deal-modal { border-radius: 0; min-height: 100vh; }
 }
+
+/* =============================================================
+   Referral Partner Portal — sales demo (/portal-demo)
+
+   Reuses the .deal-* / .board-* board styles above. Everything
+   here is the scaffolding around that board: the control bar Josh
+   drives the pitch from, the white-label brand header, and the
+   pricing / setup panel.
+   ============================================================= */
+
+.pd-shell { padding-top: 0; }
+
+/* --- demo control bar ---------------------------------------- */
+/* Dark and deliberately unlike the product, so a prospect never
+   mistakes these controls for something their referrers see. */
+.pd-bar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background: #12161C;
+  color: #F1EFEA;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+.pd-bar-inner {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 12px 24px;
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  flex-wrap: wrap;
+}
+.pd-bar-group { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.pd-bar-group[hidden] { display: none; }
+.pd-bar-end { margin-left: auto; gap: 12px; }
+.pd-bar-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: rgba(241, 239, 234, 0.5);
+  white-space: nowrap;
+}
+.pd-seg {
+  display: flex;
+  gap: 3px;
+  background: rgba(255, 255, 255, 0.07);
+  border-radius: 8px;
+  padding: 3px;
+  flex-wrap: wrap;
+}
+.pd-seg-btn {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: rgba(241, 239, 234, 0.72);
+  font: inherit;
+  font-size: 13px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.14s ease, color 0.14s ease;
+}
+.pd-seg-btn:hover { color: #FFFFFF; background: rgba(255, 255, 255, 0.08); }
+.pd-seg-btn.is-on { background: #F1EFEA; color: #12161C; font-weight: 600; }
+.pd-seg-btn:focus-visible { outline: 2px solid #C8A65A; outline-offset: 1px; }
+.pd-reset {
+  appearance: none;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: transparent;
+  color: rgba(241, 239, 234, 0.85);
+  font: inherit;
+  font-size: 12px;
+  padding: 5px 11px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.pd-reset:hover { background: rgba(255, 255, 255, 0.1); }
+.pd-bar-tag {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: rgba(200, 166, 90, 0.16);
+  color: #E2CB94;
+  border: 1px solid rgba(200, 166, 90, 0.34);
+  white-space: nowrap;
+}
+
+/* --- scenario blurb ------------------------------------------ */
+.pd-note {
+  background: #FBF8F1;
+  border-bottom: 1px solid rgba(10, 31, 61, 0.1);
+  font-size: 14px;
+  color: rgba(10, 31, 61, 0.72);
+  padding: 11px 24px;
+  text-align: center;
+}
+.pd-note strong { color: #0A1F3D; }
+
+/* --- white-label brand header -------------------------------- */
+/* The answer to "so it sits on my website?": their name, their
+   colour, their domain, above their board. */
+.pd-brandbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding: 20px 0 18px;
+  border-bottom: 2px solid var(--pd-accent, #0A1F3D);
+  margin-bottom: 18px;
+}
+.pd-brand { display: flex; align-items: center; gap: 13px; min-width: 0; }
+.pd-brand-mark {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  border-radius: 9px;
+  background: var(--pd-accent, #0A1F3D);
+  color: #FFFFFF;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: 0.04em;
+}
+.pd-brand-text { display: flex; flex-direction: column; min-width: 0; }
+.pd-brand-name {
+  font-size: 19px;
+  font-weight: 600;
+  color: var(--pd-accent, #0A1F3D);
+  line-height: 1.2;
+}
+.pd-brand-domain {
+  font-size: 12.5px;
+  color: rgba(10, 31, 61, 0.5);
+  font-variant-numeric: tabular-nums;
+}
+.pd-whoami { display: flex; flex-direction: column; align-items: flex-end; text-align: right; }
+.pd-whoami-sub { font-size: 12.5px; color: rgba(10, 31, 61, 0.55); margin-top: 2px; }
+
+/* --- isolation callout --------------------------------------- */
+/* Makes the absent rows explicit, rather than something the
+   prospect has to take on faith. */
+.pd-scope {
+  background: #F1F7FD;
+  border: 1px solid #B6D3EE;
+  border-left: 3px solid #2F6FA8;
+  border-radius: 6px;
+  padding: 11px 15px;
+  font-size: 14px;
+  line-height: 1.55;
+  color: #0B3D6B;
+  margin-bottom: 22px;
+}
+
+/* --- footer --------------------------------------------------- */
+.pd-foot {
+  margin-top: 42px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(10, 31, 61, 0.12);
+  font-size: 12.5px;
+  color: rgba(10, 31, 61, 0.5);
+  line-height: 1.6;
+}
+.pd-foot-credit { margin-top: 8px; }
+.pd-foot a { color: inherit; text-decoration: underline; }
+
+/* --- pricing + setup panel ----------------------------------- */
+.pd-pricing { padding-top: 26px; }
+.pd-sec { margin-bottom: 52px; }
+.pd-h2 {
+  font-size: 26px;
+  font-weight: 600;
+  color: #0A1F3D;
+  margin-bottom: 8px;
+  letter-spacing: -0.01em;
+}
+.pd-lede {
+  font-size: 15.5px;
+  line-height: 1.62;
+  color: rgba(10, 31, 61, 0.7);
+  max-width: 64ch;
+  margin-bottom: 26px;
+}
+
+.pd-plans {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+  margin-bottom: 26px;
+}
+.pd-plan {
+  position: relative;
+  border: 1px solid rgba(10, 31, 61, 0.14);
+  border-radius: 11px;
+  padding: 24px 21px;
+  background: #FFFFFF;
+  display: flex;
+  flex-direction: column;
+}
+.pd-plan.is-featured {
+  border-color: #0A1F3D;
+  border-width: 2px;
+  box-shadow: 0 8px 26px rgba(10, 31, 61, 0.09);
+}
+.pd-plan-flag {
+  position: absolute;
+  top: -10px;
+  left: 21px;
+  background: #0A1F3D;
+  color: #E2CB94;
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 4px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.pd-plan-name {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(10, 31, 61, 0.55);
+  margin-bottom: 10px;
+}
+.pd-plan-price { display: flex; align-items: baseline; gap: 7px; margin-bottom: 10px; }
+.pd-plan-amount {
+  font-size: 38px;
+  font-weight: 600;
+  color: #0A1F3D;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.pd-plan-per { font-size: 13px; color: rgba(10, 31, 61, 0.52); }
+.pd-plan-best {
+  font-size: 13.5px;
+  color: rgba(10, 31, 61, 0.68);
+  line-height: 1.5;
+  padding-bottom: 15px;
+  margin-bottom: 15px;
+  border-bottom: 1px solid rgba(10, 31, 61, 0.1);
+}
+.pd-plan-feats { list-style: none; display: flex; flex-direction: column; gap: 9px; }
+.pd-plan-feats li {
+  display: flex;
+  gap: 9px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: rgba(10, 31, 61, 0.82);
+}
+.pd-tick { color: #2E8B57; font-weight: 700; flex: 0 0 auto; }
+
+.pd-addons { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
+.pd-addons tr { border-bottom: 1px solid rgba(10, 31, 61, 0.1); }
+.pd-addons tr:first-child { border-top: 1px solid rgba(10, 31, 61, 0.1); }
+.pd-addons th,
+.pd-addons td { padding: 13px 14px 13px 0; text-align: left; vertical-align: top; font-size: 14px; }
+.pd-addons th { font-weight: 600; color: #0A1F3D; width: 30%; }
+.pd-addon-cost { font-weight: 600; color: #0A1F3D; white-space: nowrap; width: 22%; }
+.pd-addon-detail { color: rgba(10, 31, 61, 0.65); line-height: 1.5; }
+.pd-fineprint { font-size: 13px; color: rgba(10, 31, 61, 0.55); line-height: 1.6; max-width: 70ch; }
+
+.pd-steps { list-style: none; display: flex; flex-direction: column; gap: 4px; }
+.pd-step { display: flex; gap: 18px; padding: 18px 0; border-bottom: 1px solid rgba(10, 31, 61, 0.09); }
+.pd-step:last-child { border-bottom: 0; }
+.pd-step-n {
+  flex: 0 0 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #0A1F3D;
+  color: #E2CB94;
+  display: grid;
+  place-items: center;
+  font-size: 14px;
+  font-weight: 600;
+}
+.pd-step-body { min-width: 0; }
+.pd-step-title { font-size: 16px; font-weight: 600; color: #0A1F3D; margin-bottom: 5px; }
+.pd-step-body p { font-size: 14.5px; line-height: 1.6; color: rgba(10, 31, 61, 0.72); max-width: 68ch; }
+.pd-step-who {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: rgba(10, 31, 61, 0.45);
+}
+
+.pd-faq { max-width: 74ch; }
+.pd-faq dt {
+  font-size: 15.5px;
+  font-weight: 600;
+  color: #0A1F3D;
+  margin-top: 22px;
+  margin-bottom: 6px;
+}
+.pd-faq dt:first-child { margin-top: 0; }
+.pd-faq dd { font-size: 14.5px; line-height: 1.62; color: rgba(10, 31, 61, 0.72); }
+
+@media (max-width: 900px) {
+  .pd-plans { grid-template-columns: 1fr; }
+  .pd-plan.is-featured { order: -1; }
+}
+
+@media (max-width: 720px) {
+  .pd-bar-inner { gap: 14px; padding: 11px 16px; }
+  .pd-bar-group { width: 100%; align-items: flex-start; flex-direction: column; gap: 6px; }
+  .pd-bar-end { margin-left: 0; flex-direction: row; align-items: center; }
+  .pd-brandbar { padding-top: 16px; }
+  .pd-whoami { align-items: flex-start; text-align: left; }
+  .pd-h2 { font-size: 22px; }
+  .pd-plan-amount { font-size: 32px; }
+  .pd-addons th,
+  .pd-addons td { display: block; width: auto; padding: 2px 0; }
+  .pd-addons tr { padding: 12px 0; display: block; }
+  .pd-step { gap: 13px; }
+}
