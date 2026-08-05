@@ -50,12 +50,16 @@ function pdWhen(iso) {
 // Stage names differ per vertical, so tone is derived from the words rather
 // than a lookup table. Colour is never the only signal: the written stage is
 // always rendered next to it.
+// "file clear" is matched rather than bare "clear" on purpose: the credit
+// repair pipeline has both "Credit File Clear" (good, we can proceed) and
+// "Awaiting Clearance" (attention, still blocked), and the good test runs
+// first. "Awaiting" already trips the /waiting/ branch.
 function pdTone(stage) {
   const s = String(stage || '').toLowerCase();
   if (/declin|cancel|fell through|unable|withdrawn/.test(s)) return 'bad';
   if (/settled|funded|unconditional/.test(s)) return 'done';
-  if (/approv|booked|issued|found/.test(s)) return 'good';
-  if (/required|waiting|hold|verif|requested|chasing/.test(s)) return 'attention';
+  if (/approv|booked|issued|found|file clear/.test(s)) return 'good';
+  if (/required|waiting|hold|verif|requested|chasing|referred back/.test(s)) return 'attention';
   if (/^new /.test(s)) return 'new';
   return 'progress';
 }
@@ -173,7 +177,190 @@ const PD_SCENARIOS = [
   },
 
   // ---------------------------------------------------------------
-  // 2. Accountant -> commercial / equipment finance broker. Proves the
+  // 2. Mortgage broker -> asset and personal finance broker. A mortgage
+  //    broker hands over the car or equipment loan they do not write
+  //    themselves, and the thing they are actually anxious about is
+  //    losing sight of their own client. The notes lean on the timing
+  //    problem that dominates this relationship: asset finance taken
+  //    before a home loan settles wrecks the servicing calculation.
+  // ---------------------------------------------------------------
+  {
+    id: 'mortgage-referrer',
+    tab: 'Mortgage broker',
+    blurb: 'Asset and personal finance. Mortgage brokers watch the deals they handed over without losing sight of their client.',
+    broker: {
+      name: 'Kesteven Asset Finance',
+      initials: 'KA',
+      accent: '#1B3A5C',
+      domain: 'partners.kestevenfinance.com.au',
+    },
+    itemLabel: 'Finance required',
+    customerLabel: 'Client',
+    stages: [
+      'New Referral', 'Contacting Client', 'Fact Find Booked', 'Application Sent',
+      'Documents Required', 'Submitted to Lender', 'Conditional Approval',
+      'Settlement Booked', 'Settled', 'On Hold', 'Referred Back', 'Declined',
+    ],
+    partners: [
+      { id: 'harbourline', name: 'Harbourline Mortgage Group', signedInAs: 'Nadine' },
+      { id: 'tessellate', name: 'Tessellate Home Loans', signedInAs: 'Owen' },
+      { id: 'brightpath', name: 'Brightpath Finance Advisers', signedInAs: 'Sana' },
+    ],
+    deals: [
+      {
+        id: 'r1', partner: 'harbourline', item: 'Vehicle loan — 2023 Mazda CX-5',
+        sub: ['$44,900', 'Consumer'], customer: 'The Achebes', phone: '0491 570 008',
+        stage: 'On Hold', updated: pdDaysAgo(0, 9, 40),
+        notes: [
+          { t: 'Deliberately parked until the home loan settles on the 12th. Nadine, I will not lodge anything before then so it cannot touch their servicing. Approval is ready to go the moment you give me the nod.', w: pdDaysAgo(0, 9, 40), by: 'Tom (Kesteven)' },
+          { t: 'Spoke with the clients. They understand the sequencing and are happy to wait.', w: pdDaysAgo(3, 11, 15), by: 'Tom (Kesteven)' },
+        ],
+      },
+      {
+        id: 'r2', partner: 'harbourline', item: 'Novated lease — 2024 Tesla Model Y',
+        sub: ['$68,400', 'Novated'], customer: 'D. Kaur', phone: '0491 570 015',
+        stage: 'Settlement Booked', updated: pdDaysAgo(1, 14, 5),
+        notes: [
+          { t: 'Settling Friday. Novated, so it sits against the salary packaging rather than the client directly. No impact on the refinance you are working on.', w: pdDaysAgo(1, 14, 5), by: 'Tom (Kesteven)' },
+        ],
+      },
+      {
+        id: 'r3', partner: 'harbourline', item: 'Personal loan — debt consolidation',
+        sub: ['$32,000', 'Unsecured'], customer: 'B. Kovacevic', phone: '0491 570 027',
+        stage: 'Referred Back', updated: pdDaysAgo(5, 10, 30),
+        notes: [
+          { t: 'Sending this one back to you, Nadine. Once I ran the numbers the better answer is folding it into the home loan at your rate, not a personal loan at mine. Client agrees.', w: pdDaysAgo(5, 10, 30), by: 'Tom (Kesteven)' },
+        ],
+      },
+      {
+        id: 'r4', partner: 'tessellate', item: 'Equipment loan — commercial mower fleet',
+        sub: ['$58,000', 'Chattel mortgage'], customer: 'Verdant Grounds Pty Ltd', phone: '0491 570 036',
+        stage: 'Conditional Approval', updated: pdDaysAgo(1, 16, 20),
+        notes: [
+          { t: 'Conditional approval through. Needs the supplier invoice and a copy of the lease on the depot.', w: pdDaysAgo(1, 16, 20), by: 'Tom (Kesteven)' },
+          { t: 'Owen, worth knowing the director is asking about a commercial property purchase next year. Might be one for you.', w: pdDaysAgo(2, 9, 50), by: 'Tom (Kesteven)' },
+        ],
+      },
+      {
+        id: 'r5', partner: 'tessellate', item: 'Vehicle loan — 2022 Subaru Outback',
+        sub: ['$39,500', 'Consumer'], customer: 'M. Delacroix', phone: '0491 570 048',
+        stage: 'Documents Required', updated: pdDaysAgo(2, 13, 10),
+        notes: [
+          { t: 'Chasing two payslips. Everything else is in and it looks straightforward.', w: pdDaysAgo(2, 13, 10), by: 'Tom (Kesteven)' },
+        ],
+      },
+      {
+        id: 'r6', partner: 'brightpath', item: 'Vehicle loan — 2021 Ford Everest',
+        sub: ['$51,200', 'Consumer'], customer: 'The Whitlams', phone: '0491 570 057',
+        stage: 'Settled', updated: pdDaysAgo(8, 15, 0),
+        notes: [
+          { t: 'Settled. Client was thrilled, and they know it came through you, Sana. Referral fee is on this month statement.', w: pdDaysAgo(8, 15, 0), by: 'Tom (Kesteven)' },
+        ],
+      },
+      {
+        id: 'r7', partner: 'brightpath', item: 'Vehicle loan — first car for a dependant',
+        sub: ['$18,600', 'Consumer'], customer: 'J. Fitzhardinge', phone: '0491 570 065',
+        stage: 'New Referral', updated: pdDaysAgo(0, 8, 25),
+        notes: [
+          { t: 'Referral received from Brightpath. Parent is guarantor. Calling this morning.', w: pdDaysAgo(0, 8, 25), by: 'System' },
+        ],
+      },
+    ],
+  },
+
+  // ---------------------------------------------------------------
+  // 3. Credit repair firm -> finance broker. The referrer's whole
+  //    business is "we cleaned the file, did it actually get them
+  //    finance?", so the outcome loop is the product for them. The
+  //    extra stages at the front (Awaiting Clearance, Credit File
+  //    Clear) are the part of the pipeline they care most about and
+  //    exist nowhere else in the demo.
+  // ---------------------------------------------------------------
+  {
+    id: 'credit-repair',
+    tab: 'Credit repair',
+    blurb: 'Credit repair firms see which of their cleared clients got finance, and when the file was clean enough to proceed.',
+    broker: {
+      name: 'Anchorpoint Finance',
+      initials: 'AP',
+      accent: '#3B2F52',
+      domain: 'partners.anchorpointfinance.com.au',
+    },
+    itemLabel: 'Finance required',
+    customerLabel: 'Client',
+    stages: [
+      'New Referral', 'Awaiting Clearance', 'Credit File Clear', 'Contacting Client',
+      'Application Sent', 'Documents Required', 'Submitted to Lender',
+      'Conditional Approval', 'Settled', 'On Hold', 'Declined',
+    ],
+    partners: [
+      { id: 'clearpath', name: 'Clearpath Credit Solutions', signedInAs: 'Marisa' },
+      { id: 'rectify', name: 'Rectify Credit Repair', signedInAs: 'Ben' },
+    ],
+    deals: [
+      {
+        id: 'k1', partner: 'clearpath', item: 'Vehicle loan — family SUV',
+        sub: ['$36,000', 'Consumer'], customer: 'T. Baptiste', phone: '0491 570 077',
+        stage: 'Awaiting Clearance', updated: pdDaysAgo(1, 10, 20),
+        notes: [
+          { t: 'Two defaults are off. The telco listing is still showing, so I am holding the application rather than burning an enquiry on the file. Marisa, ping me the moment it drops.', w: pdDaysAgo(1, 10, 20), by: 'Rhea (Anchorpoint)' },
+          { t: 'Client contacted and briefed. They understand why we are waiting.', w: pdDaysAgo(4, 14, 0), by: 'Rhea (Anchorpoint)' },
+        ],
+      },
+      {
+        id: 'k2', partner: 'clearpath', item: 'Vehicle loan — work ute',
+        sub: ['$47,500', 'Consumer'], customer: 'G. Mwangi', phone: '0491 570 085',
+        stage: 'Credit File Clear', updated: pdDaysAgo(0, 11, 50),
+        notes: [
+          { t: 'File came back clean this morning. Score is up 118 points. Moving straight to application, this one should fly now.', w: pdDaysAgo(0, 11, 50), by: 'Rhea (Anchorpoint)' },
+        ],
+      },
+      {
+        id: 'k3', partner: 'clearpath', item: 'Personal loan — consolidation',
+        sub: ['$21,000', 'Unsecured'], customer: 'S. Ferndale', phone: '0491 570 092',
+        stage: 'Settled', updated: pdDaysAgo(6, 12, 30),
+        notes: [
+          { t: 'Settled at 12.4%, which is a rate she could not have touched nine months ago. Nice work on that file, Marisa.', w: pdDaysAgo(6, 12, 30), by: 'Rhea (Anchorpoint)' },
+          { t: 'Approved. Client in tears on the phone, genuinely.', w: pdDaysAgo(8, 16, 10), by: 'Rhea (Anchorpoint)' },
+        ],
+      },
+      {
+        id: 'k4', partner: 'rectify', item: 'Vehicle loan — 2020 Hyundai Tucson',
+        sub: ['$29,400', 'Consumer'], customer: 'L. Oyelaran', phone: '0491 570 099',
+        stage: 'Submitted to Lender', updated: pdDaysAgo(1, 15, 40),
+        notes: [
+          { t: 'Submitted to a lender that reads the file rather than just the score. Answer expected tomorrow.', w: pdDaysAgo(1, 15, 40), by: 'Rhea (Anchorpoint)' },
+        ],
+      },
+      {
+        id: 'k5', partner: 'rectify', item: 'Vehicle loan — replacement car',
+        sub: ['$24,800', 'Consumer'], customer: 'D. Ruzicka', phone: '0491 570 105',
+        stage: 'Documents Required', updated: pdDaysAgo(3, 9, 15),
+        notes: [
+          { t: 'Need 90 days of statements and proof the old loan is closed out. Ben, he is easier to reach after 4pm.', w: pdDaysAgo(3, 9, 15), by: 'Rhea (Anchorpoint)' },
+        ],
+      },
+      {
+        id: 'k6', partner: 'rectify', item: 'Personal loan — medical costs',
+        sub: ['$14,000', 'Unsecured'], customer: 'A. Petrakis', phone: '0491 570 112',
+        stage: 'Declined', updated: pdDaysAgo(9, 13, 20),
+        notes: [
+          { t: 'Declined on serviceability, not on credit. The file itself was fine. Worth revisiting once the new role is past probation in March.', w: pdDaysAgo(9, 13, 20), by: 'Rhea (Anchorpoint)' },
+        ],
+      },
+      {
+        id: 'k7', partner: 'rectify', item: 'Vehicle loan — enquiry',
+        sub: ['$33,000 estimated'], customer: 'N. Halloran', phone: '0491 570 118',
+        stage: 'New Referral', updated: pdDaysAgo(0, 8, 50),
+        notes: [
+          { t: 'Referral received from Rectify. Repair work finished last week, file not yet re-pulled.', w: pdDaysAgo(0, 8, 50), by: 'System' },
+        ],
+      },
+    ],
+  },
+
+  // ---------------------------------------------------------------
+  // 4. Accountant -> commercial / equipment finance broker. Proves the
   //    product is not car-shaped: the asset is a machine, the customer
   //    is an entity, and the docs are financials rather than payslips.
   // ---------------------------------------------------------------
@@ -244,7 +431,7 @@ const PD_SCENARIOS = [
   },
 
   // ---------------------------------------------------------------
-  // 3. Real estate / buyers agent -> mortgage broker. The biggest market
+  // 5. Real estate / buyers agent -> mortgage broker. The biggest market
   //    by far, and the one that proves the pipeline is configurable: none
   //    of these stages exist in the asset finance board.
   // ---------------------------------------------------------------
@@ -323,7 +510,7 @@ const PD_SCENARIOS = [
   },
 
   // ---------------------------------------------------------------
-  // 4. Solar installer -> personal / green loan broker. High volume,
+  // 6. Solar installer -> personal / green loan broker. High volume,
   //    small ticket, fast cycle. Proves the board reads well when a
   //    partner has a lot of deals moving quickly.
   // ---------------------------------------------------------------
