@@ -1,4 +1,4 @@
-/* global React, ReactDOM, LogoExisting, LogoProposed, Icon, HomePage, ServicesPage, AboutPage, ApplyPage, BrokerProfilePage, PartnersPage, CreditRepairPage, CreditRepairEnquiryPage, PrivacyPage, ClientsPage, StaffDebtBustersPage, DealerKoCarsPage, AutozoneApplyPage, AutozoneStaffPage, PortalDemoPage, LOANS, afosLink, useTweaks, TweaksPanel, TweakSection, TweakRadio, TweakColor */
+/* global React, ReactDOM, LogoExisting, LogoProposed, Icon, HomePage, ServicesPage, AboutPage, ApplyPage, BrokerProfilePage, PartnersPage, CreditRepairPage, CreditRepairEnquiryPage, PrivacyPage, ClientsPage, StaffDebtBustersPage, DealerKoCarsPage, AutozoneApplyPage, AutozoneStaffPage, KoApplyPage, PortalDemoPage, LOANS, afosLink, useTweaks, TweaksPanel, TweakSection, TweakRadio, TweakColor */
 const { useState: useStateApp, useEffect: useEffectApp } = React;
 
 // Makes an onClick element keyboard-operable (Enter/Space) and exposes it to
@@ -107,6 +107,10 @@ const ROUTES = [
   // AutoZone QLD staff ad-copy tool — internal reference for the dealership,
   // not linked from Nav, the footer or the sitemap.
   { id: 'autozone-staff', path: '/autozone-staff' },
+  // KO Cars twin of autozone-apply — the quick-quote link Charlie and the KO
+  // Cars floor send to their customers. Not linked from Nav, the footer or
+  // the sitemap.
+  { id: 'ko-apply', path: '/ko-apply' },
   // Referral Partner Portal sales demo — the prototype Josh shows to other
   // brokers. Entirely invented data, no API, no login. Not linked from Nav,
   // the footer or the sitemap; the URL is handed out directly.
@@ -129,6 +133,7 @@ const TITLES = {
   'autozone-apply': 'Quick Quote — The Buyer Assist Group',
   'apply-josh': 'Apply with Josh — The Buyer Assist Group',
   'autozone-staff': 'AutoZone Staff Ad Copy — The Buyer Assist Group',
+  'ko-apply': 'KO Cars Quick Quote — The Buyer Assist Group',
   'portal-demo': 'Referral Partner Portal — demo',
 };
 
@@ -473,6 +478,12 @@ function App() {
   // AutoZone QLD staff ad-copy tool — isolated internal page, no public chrome.
   if (page === 'autozone-staff') {
     return <AutozoneStaffPage/>;
+  }
+
+  // KO Cars quick-quote embed — same isolation as autozone-apply: nothing
+  // that leads a KO customer back into the marketing site or the tweaks panel.
+  if (page === 'ko-apply') {
+    return <KoApplyPage/>;
   }
 
   // Referral Partner Portal sales demo. Isolated like the other hidden pages:

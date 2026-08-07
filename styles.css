@@ -1581,7 +1581,7 @@ h1, h2, h3, h4 { margin: 0; font-family: var(--serif); font-weight: 400; letter-
 /* Credit-repair hint on the loan picker */
 .loan-picker .item-hint { display: block; margin-top: 8px; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gold-2); }
 
-/* ---- Hidden quick-quote embed (/autozone-apply, /apply/josh) ---- */
+/* ---- Hidden quick-quote embed (/autozone-apply, /apply/josh, /ko-apply) ---- */
 .quote-embed-shell { min-height: 100vh; display: flex; flex-direction: column; background: var(--paper); }
 .quote-embed-header {
   display: flex; align-items: center; gap: 16px;

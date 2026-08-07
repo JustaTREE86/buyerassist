@@ -6,3 +6,4 @@ Disallow: /eve
 Disallow: /autozone-apply
 Disallow: /apply/josh
 Disallow: /autozone-staff
+Disallow: /ko-apply

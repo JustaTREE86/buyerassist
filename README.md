@@ -38,6 +38,7 @@ Built by **BrokenMind Software**.
 - **Staff — Debt Busters outcome** (`/staff/debt-busters`) — **hidden**, password-gated, not linked from nav/footer/sitemap. See "Hidden staff page" below.
 - **Josh's quick quote** (`/autozone-apply`) — **hidden**, not linked from nav/footer/sitemap. Full-bleed embed of Josh's personal AFOS referral widget (`page-autozone.jsx`) — a link he sends directly to clients.
 - **Apply with Josh** (`/apply/josh`) — **hidden**, not linked from nav/footer/sitemap. Same embed as `/autozone-apply` (reuses `AutozoneApplyPage`), at a clean vanity URL Josh posts publicly (Facebook, etc) instead of the AFOS referral link.
+- **KO Cars quick quote** (`/ko-apply`) — **hidden**, not linked from nav/footer/sitemap. The KO Cars twin of `/autozone-apply` (`page-ko.jsx`), headed "KO Cars · with Josh", for Charlie and the KO Cars floor to send to their customers. Same AFOS widget as `/autozone-apply` — swap `KO_WIDGET_URL` if a KO-specific referral widget is ever set up.
 - **AutoZone staff ad copy** (`/autozone-staff`) — **hidden**, not linked from nav/footer/sitemap. Internal reference (`page-autozone-staff.jsx`) AutoZone QLD staff open to copy ready-made, compliant Facebook ad copy per vehicle price ($9,990–$99,990). Repayments computed live from the locked offer (11.95% p.a. / 60 mth / $550 estab + $1,210 brokerage). NOT the customer page. Comparison rate 14.49% is flagged `[VERIFY with licensee]`.
 
 All pages are real, deep-linkable URLs (browser back/forward and page refresh both work) — routing lives in `app.jsx` (`ROUTES` / `pathFor` / `parsePath`).
@@ -117,6 +118,7 @@ Without these set, `/staff/debt-busters` still loads and rejects logins with a c
 | `page-privacy.jsx` | Privacy & Credit Guide |
 | `page-staff.jsx` | Hidden `/staff/debt-busters` page — password gate + outcome form |
 | `page-autozone.jsx` | Hidden `/autozone-apply` page — full-bleed embed of Josh's personal AFOS referral widget |
+| `page-ko.jsx` | Hidden `/ko-apply` page — same embed, KO Cars header, for Charlie to send to KO customers |
 | `app.jsx` | Router (`ROUTES`/`pathFor`/`parsePath`), Nav, Footer, top-level `App` |
 | `tweaks-panel.jsx` | Client design tweaks panel (only opens when driven by an external host — no visible toggle in production) |
 | `api/staff-auth.js` | Serverless — checks the staff password |
