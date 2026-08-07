@@ -2199,81 +2199,26 @@ h1, h2, h3, h4 { margin: 0; font-family: var(--serif); font-weight: 400; letter-
   margin-bottom: 26px;
 }
 
-.pd-plans {
+/* "What you get", the list that replaced the priced plan cards on both
+   demos. Two columns so ten items read as one glanceable block rather
+   than a long scroll. */
+.pd-included {
+  list-style: none;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 18px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 13px 28px;
   margin-bottom: 26px;
+  max-width: 92ch;
 }
-.pd-plan {
-  position: relative;
-  border: 1px solid rgba(10, 31, 61, 0.14);
-  border-radius: 11px;
-  padding: 24px 21px;
-  background: #FFFFFF;
+.pd-included li {
   display: flex;
-  flex-direction: column;
-}
-.pd-plan.is-featured {
-  border-color: #0A1F3D;
-  border-width: 2px;
-  box-shadow: 0 8px 26px rgba(10, 31, 61, 0.09);
-}
-.pd-plan-flag {
-  position: absolute;
-  top: -10px;
-  left: 21px;
-  background: #0A1F3D;
-  color: #E2CB94;
-  font-size: 10.5px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  padding: 4px 10px;
-  border-radius: 999px;
-  white-space: nowrap;
-}
-.pd-plan-name {
-  font-size: 13px;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: rgba(10, 31, 61, 0.55);
-  margin-bottom: 10px;
-}
-.pd-plan-price { display: flex; align-items: baseline; gap: 7px; margin-bottom: 10px; }
-.pd-plan-amount {
-  font-size: 38px;
-  font-weight: 600;
-  color: #0A1F3D;
-  letter-spacing: -0.02em;
-  font-variant-numeric: tabular-nums;
-}
-.pd-plan-per { font-size: 13px; color: rgba(10, 31, 61, 0.52); }
-.pd-plan-best {
-  font-size: 13.5px;
-  color: rgba(10, 31, 61, 0.68);
+  gap: 10px;
+  font-size: 14.5px;
   line-height: 1.5;
-  padding-bottom: 15px;
-  margin-bottom: 15px;
-  border-bottom: 1px solid rgba(10, 31, 61, 0.1);
-}
-.pd-plan-feats { list-style: none; display: flex; flex-direction: column; gap: 9px; }
-.pd-plan-feats li {
-  display: flex;
-  gap: 9px;
-  font-size: 14px;
-  line-height: 1.45;
   color: rgba(10, 31, 61, 0.82);
 }
 .pd-tick { color: #2E8B57; font-weight: 700; flex: 0 0 auto; }
 
-.pd-addons { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
-.pd-addons tr { border-bottom: 1px solid rgba(10, 31, 61, 0.1); }
-.pd-addons tr:first-child { border-top: 1px solid rgba(10, 31, 61, 0.1); }
-.pd-addons th,
-.pd-addons td { padding: 13px 14px 13px 0; text-align: left; vertical-align: top; font-size: 14px; }
-.pd-addons th { font-weight: 600; color: #0A1F3D; width: 30%; }
-.pd-addon-cost { font-weight: 600; color: #0A1F3D; white-space: nowrap; width: 22%; }
-.pd-addon-detail { color: rgba(10, 31, 61, 0.65); line-height: 1.5; }
 .pd-fineprint { font-size: 13px; color: rgba(10, 31, 61, 0.55); line-height: 1.6; max-width: 70ch; }
 
 .pd-steps { list-style: none; display: flex; flex-direction: column; gap: 4px; }
@@ -2314,8 +2259,7 @@ h1, h2, h3, h4 { margin: 0; font-family: var(--serif); font-weight: 400; letter-
 .pd-faq dd { font-size: 14.5px; line-height: 1.62; color: rgba(10, 31, 61, 0.72); }
 
 @media (max-width: 900px) {
-  .pd-plans { grid-template-columns: 1fr; }
-  .pd-plan.is-featured { order: -1; }
+  .pd-included { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 720px) {
@@ -2329,10 +2273,6 @@ h1, h2, h3, h4 { margin: 0; font-family: var(--serif); font-weight: 400; letter-
   .pd-brandbar { padding-top: 16px; }
   .pd-whoami { align-items: flex-start; text-align: left; }
   .pd-h2 { font-size: 22px; }
-  .pd-plan-amount { font-size: 32px; }
-  .pd-addons th,
-  .pd-addons td { display: block; width: auto; padding: 2px 0; }
-  .pd-addons tr { padding: 12px 0; display: block; }
   .pd-step { gap: 13px; }
 }
 
@@ -2342,8 +2282,8 @@ h1, h2, h3, h4 { margin: 0; font-family: var(--serif); font-weight: 400; letter-
    Everything shared with the generic portal demo stays on the
    .pd-* / .board-* / .deal-* rules above. Only the pieces that
    exist because this build is branded for one firm live here:
-   the real logo lockup, the price calculator, and the partner
-   login mock. --pd-accent is set inline to the Ready Finance
+   the real logo lockup and the partner login mock.
+   --pd-accent is set inline to the Ready Finance
    blue (#1681B7), so the brand bar picks it up for free.
    ============================================================= */
 
@@ -2374,46 +2314,30 @@ h1, h2, h3, h4 { margin: 0; font-family: var(--serif); font-weight: 400; letter-
   font-variant-numeric: tabular-nums;
 }
 
-/* --- price calculator ----------------------------------------- */
-/* The number Ben actually wants: what it costs him at the size he
-   is, and what it costs when the network doubles. */
-.rf-calc {
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 20px 22px;
-  margin-bottom: 26px;
-  background: var(--bone);
-}
-.rf-calc-label {
-  display: block;
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.09em;
-  color: rgba(10, 31, 61, 0.55);
-  margin-bottom: 10px;
-}
-.rf-calc-row { display: flex; align-items: center; gap: 16px; }
-.rf-calc-range { flex: 1 1 auto; min-width: 0; accent-color: var(--pd-accent, #1681B7); }
-.rf-calc-range:focus-visible { outline: 2px solid var(--pd-accent, #1681B7); outline-offset: 4px; }
-.rf-calc-count {
+/* --- referral agency marks ------------------------------------ */
+/* Invented logos for the invented agencies on the demo board. The
+   tile is identical across all four so they read as a set; the
+   colour and glyph carry the identity. Drawn inline in the JSX, so
+   there is no asset here, only the frame around it. */
+.rf-agency-tile {
   flex: 0 0 auto;
-  min-width: 2.5ch;
-  text-align: right;
-  font-size: 20px;
-  font-weight: 600;
-  color: var(--pd-accent, #1681B7);
-  font-variant-numeric: tabular-nums;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 8px;
+  color: #FFFFFF;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16);
 }
-.rf-calc-out { display: flex; align-items: baseline; gap: 8px; margin: 14px 0 4px; }
-.rf-calc-total {
-  font-size: 34px;
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  color: var(--pd-accent, #1681B7);
-  font-variant-numeric: tabular-nums;
-}
-.rf-calc-per { font-size: 14px; color: var(--muted); }
-.rf-calc-detail { font-size: 13.5px; color: var(--muted); margin: 0; }
+.rf-agency-tile svg { display: block; }
+
+/* Signed in as a partner: their mark next to their name, in the
+   corner of Ready Finance's own header. */
+.rf-whoami-partner { display: flex; align-items: center; gap: 11px; }
+.rf-whoami-text { display: flex; flex-direction: column; align-items: flex-end; text-align: right; }
+
+/* "Referred by" on an expanded deal, so staff can tell at a glance
+   which agency a row came from. */
+.rf-referred { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.rf-referred-name { color: var(--ink); font-weight: 600; }
 
 /* --- partner login mock --------------------------------------- */
 /* A picture of the first thing a referrer sees. The form is inert;
@@ -2463,6 +2387,16 @@ h1, h2, h3, h4 { margin: 0; font-family: var(--serif); font-weight: 400; letter-
 }
 .rf-login-btn:hover { filter: brightness(1.08); }
 .rf-login-btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+/* Not a link: the mock has nowhere to send anyone. It is here because a real
+   login screen has one, and its absence is the kind of thing that makes a
+   demo look like a demo. */
+.rf-login-help {
+  display: block;
+  margin-top: 14px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--muted);
+}
 .rf-login-foot {
   font-size: 12.5px;
   line-height: 1.55;
@@ -2480,8 +2414,7 @@ h1, h2, h3, h4 { margin: 0; font-family: var(--serif); font-weight: 400; letter-
 
 @media (max-width: 720px) {
   .rf-brand-logo { height: 30px; }
-  .rf-calc { padding: 16px 16px 18px; }
-  .rf-calc-total { font-size: 28px; }
+  .rf-whoami-text { align-items: flex-start; text-align: left; }
   .rf-login-wrap { padding: 28px 0 24px; }
   .rf-login-card { padding: 26px 20px 22px; }
 }

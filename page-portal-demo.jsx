@@ -587,67 +587,24 @@ const PD_SCENARIOS = [
   },
 ];
 
-// ---- pricing --------------------------------------------------------------
+// ---- what's included ------------------------------------------------------
 //
-// Priced on partner count, not staff seats. Partner count is the number that
-// grows when the customer succeeds, so the account expands without anyone
-// having to sell into it again. Staff seats are the wrong meter: a broker adds
-// those once and never again.
+// No pricing anywhere on this page: Josh has not settled on it yet, and a
+// number on screen is a number he is committed to the moment a prospect reads
+// it. Cost is a conversation, not a slide. This list is what the conversation
+// is about.
 
-const PD_PLANS = [
-  {
-    id: 'solo',
-    name: 'Solo',
-    price: '$99',
-    per: 'per month',
-    best: 'One broker, a handful of referrers.',
-    features: [
-      'Up to 3 referral partner portals',
-      'Unlimited deals',
-      'Hosted at yourname.brokenmind.com.au',
-      '2 staff logins',
-      'Full stage history on every deal',
-      'Email support',
-    ],
-  },
-  {
-    id: 'practice',
-    name: 'Practice',
-    price: '$249',
-    per: 'per month',
-    featured: true,
-    best: 'The common one. A growing referral network.',
-    features: [
-      'Up to 10 referral partner portals',
-      'Your own domain: partners.yourfirm.com.au',
-      'Your logo and colours throughout',
-      '5 staff logins',
-      'Custom pipeline stages',
-      'Partner activity reporting',
-      'Priority email support',
-    ],
-  },
-  {
-    id: 'brokerage',
-    name: 'Brokerage',
-    price: '$499',
-    per: 'per month',
-    best: 'Multi-broker firms and dealer groups.',
-    features: [
-      'Up to 25 referral partner portals',
-      'Unlimited staff logins',
-      'Per-broker views and reporting',
-      'Custom stages per partner type',
-      'Onboarding call for each new partner',
-      'Priority support',
-    ],
-  },
-];
-
-const PD_ADDONS = [
-  ['Extra referral partner', '+$25 per month each', 'On any plan. Add or remove them whenever.'],
-  ['Setup and onboarding', '$750 once', 'Practice and Brokerage. Domain, branding, data import, a training call for your team.'],
-  ['Annual payment', '2 months free', 'Pay for 12 months up front, pay for 10.'],
+const PD_INCLUDED = [
+  'The board on your own domain: partners.yourfirm.com.au',
+  'Your logo and your colours throughout',
+  'A separate portal for every referral partner',
+  'Each partner sees only the deals they referred, enforced in the database',
+  'Your pipeline stages, whatever they are',
+  'Full stage and note history on every deal',
+  'Logins for your team, each person named on the notes they write',
+  'Partner activity reporting',
+  'Data held in Australia, encrypted, separated per firm',
+  'A written data processing agreement before anything goes live',
 ];
 
 const PD_SETUP = [
@@ -689,50 +646,25 @@ const PD_SETUP = [
   },
 ];
 
-function PdPricing() {
+function PdHowItWorks() {
   return (
     <div className="pd-pricing">
       <section className="pd-sec">
-        <h2 className="pd-h2">Pricing</h2>
+        <h2 className="pd-h2">What you get</h2>
         <p className="pd-lede">
-          Priced on how many referral partners you give a portal to. Add partners as you win
-          them, remove them if a relationship ends. No lock-in contract, cancel any month.
+          A portal for every referral partner, on your domain, under your brand. Add partners
+          as you win them, switch one off if a relationship ends.
         </p>
 
-        <div className="pd-plans">
-          {PD_PLANS.map((p) => (
-            <div key={p.id} className={`pd-plan${p.featured ? ' is-featured' : ''}`}>
-              {p.featured && <span className="pd-plan-flag">Most brokers start here</span>}
-              <h3 className="pd-plan-name">{p.name}</h3>
-              <p className="pd-plan-price">
-                <span className="pd-plan-amount">{p.price}</span>
-                <span className="pd-plan-per">{p.per}</span>
-              </p>
-              <p className="pd-plan-best">{p.best}</p>
-              <ul className="pd-plan-feats">
-                {p.features.map((f, i) => (
-                  <li key={i}><span className="pd-tick" aria-hidden="true">✓</span>{f}</li>
-                ))}
-              </ul>
-            </div>
+        <ul className="pd-included">
+          {PD_INCLUDED.map((f, i) => (
+            <li key={i}><span className="pd-tick" aria-hidden="true">✓</span>{f}</li>
           ))}
-        </div>
-
-        <table className="pd-addons">
-          <tbody>
-            {PD_ADDONS.map(([what, cost, detail], i) => (
-              <tr key={i}>
-                <th scope="row">{what}</th>
-                <td className="pd-addon-cost">{cost}</td>
-                <td className="pd-addon-detail">{detail}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        </ul>
 
         <p className="pd-fineprint">
-          All prices in AUD and exclude GST. What you actually pay: a broker on Practice with
-          14 referral partners pays $249 plus 4 extra partners at $25, so $349 a month.
+          Cost is not on this page on purpose. Josh will talk it through with you directly
+          rather than have a number sit here out of context.
         </p>
       </section>
 
@@ -788,8 +720,8 @@ function PdPricing() {
 
           <dt>What if a referral relationship ends?</dt>
           <dd>
-            Switch their portal off. Their access dies immediately, the deals stay on your
-            board, and your bill drops the following month.
+            Switch their portal off. Their access dies immediately and the deals stay on
+            your board.
           </dd>
 
           <dt>Can my partners submit new referrals through it?</dt>
@@ -818,8 +750,8 @@ function PdDemoBar({ scenario, onScenario, viewer, onViewer, partners, onReset, 
           <div className="pd-seg">
             <button type="button" className={`pd-seg-btn${mode === 'board' ? ' is-on' : ''}`}
                     onClick={() => onMode('board')}>The board</button>
-            <button type="button" className={`pd-seg-btn${mode === 'pricing' ? ' is-on' : ''}`}
-                    onClick={() => onMode('pricing')}>Pricing &amp; setup</button>
+            <button type="button" className={`pd-seg-btn${mode === 'how' ? ' is-on' : ''}`}
+                    onClick={() => onMode('how')}>How it works</button>
           </div>
         </div>
 
@@ -1011,7 +943,7 @@ function PdGroup({ stage, deals, scenario, collapsed, onToggleGroup, openIds, on
 function PortalDemoPage() {
   pdNoIndex();
 
-  const [mode, setMode] = useStatePd('board');            // 'board' | 'pricing'
+  const [mode, setMode] = useStatePd('board');            // 'board' | 'how'
   const [scenarioId, setScenarioId] = useStatePd(PD_SCENARIOS[0].id);
   const [viewer, setViewer] = useStatePd('staff');
   const [overrides, setOverrides] = useStatePd({});   // dealId -> { stage, notes }
@@ -1126,9 +1058,9 @@ function PortalDemoPage() {
         onMode={setMode}
       />
 
-      {mode === 'pricing' && (
+      {mode === 'how' && (
         <div className="deal-page">
-          <PdPricing />
+          <PdHowItWorks />
           <footer className="pd-foot">
             <p className="pd-foot-credit">
               Referral Partner Portal · built by{' '}

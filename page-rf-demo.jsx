@@ -23,8 +23,8 @@
 // Street numbers are invented; only suburb names are real.
 //
 // Reuses the .deal-* / .board-* / .pd-* styles. Only the genuinely Ready
-// Finance specific pieces (logo lockup, price calculator, login mock) get
-// their own .rf-* rules, at the end of styles.css.
+// Finance specific pieces (logo lockup, login mock) get their own .rf-* rules,
+// at the end of styles.css.
 // =============================================================
 const {
   useState: useStateRf,
@@ -129,11 +129,70 @@ const RF_STAGES = [
 // pipeline, and the notes are written to show that.
 
 const RF_PARTNERS = [
-  { id: 'coastline', name: 'Coastline Property Group', kind: 'Real estate agency', signedInAs: 'Elise' },
-  { id: 'ashgrove', name: 'Ashgrove Buyers Advocacy', kind: 'Buyers advocate', signedInAs: 'Cameron' },
-  { id: 'meridian', name: 'Meridian Conveyancing', kind: 'Conveyancer', signedInAs: 'Trish' },
-  { id: 'pinnacle', name: 'Pinnacle Accounting Partners', kind: 'Accountant', signedInAs: 'Deepa' },
+  { id: 'coastline', name: 'Coastline Property Group', kind: 'Real estate agency', signedInAs: 'Elise', accent: '#0E6E6E' },
+  { id: 'ashgrove', name: 'Ashgrove Buyers Advocacy', kind: 'Buyers advocate', signedInAs: 'Cameron', accent: '#2F6B4F' },
+  { id: 'meridian', name: 'Meridian Conveyancing', kind: 'Conveyancer', signedInAs: 'Trish', accent: '#6B3A5B' },
+  { id: 'pinnacle', name: 'Pinnacle Accounting Partners', kind: 'Accountant', signedInAs: 'Deepa', accent: '#2C4A6E' },
 ];
+
+// Invented marks for invented firms, drawn inline so there is no asset to
+// ship, nothing to 404, and they stay sharp at any size. Abstract geometry on
+// purpose: these must not read as any real agency's logo. Each one is shaped
+// to its trade, so the four are distinguishable at a glance on the board.
+const RF_PARTNER_GLYPHS = {
+  // Two waves under a roofline. Coast, and a house.
+  coastline: (
+    <React.Fragment>
+      <path d="M4 10 L12 4 L20 10" fill="none" stroke="currentColor" strokeWidth="2"
+            strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M3 15c2.5-2 4.5-2 7 0s4.5 2 7 0 4.5-2 4-1.6" fill="none" stroke="currentColor"
+            strokeWidth="2" strokeLinecap="round" />
+      <path d="M3 19.5c2.5-2 4.5-2 7 0s4.5 2 7 0 4.5-2 4-1.6" fill="none" stroke="currentColor"
+            strokeWidth="2" strokeLinecap="round" opacity="0.55" />
+    </React.Fragment>
+  ),
+  // A leaf on a stem. Ash, grove.
+  ashgrove: (
+    <React.Fragment>
+      <path d="M12 21V11" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <path d="M12 12c0-5 3.5-8.5 8-9 .5 4.5-2.5 9-8 9z" fill="currentColor" />
+      <path d="M11.4 15c-3.6 0-6.2-2.4-6.4-6 3.6-.2 6.2 2.1 6.4 6z" fill="currentColor" opacity="0.6" />
+    </React.Fragment>
+  ),
+  // A globe with its meridian picked out.
+  meridian: (
+    <React.Fragment>
+      <circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" strokeWidth="1.6" opacity="0.55" />
+      <ellipse cx="12" cy="12" rx="4" ry="8.5" fill="none" stroke="currentColor" strokeWidth="1.6" opacity="0.55" />
+      <path d="M12 3.5v17" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
+    </React.Fragment>
+  ),
+  // Two peaks, the taller one solid. A summit, and a rising column.
+  pinnacle: (
+    <React.Fragment>
+      <path d="M12 4l7.5 15h-15z" fill="currentColor" />
+      <path d="M6.5 11L2 19h9z" fill="currentColor" opacity="0.5" />
+    </React.Fragment>
+  ),
+};
+
+// The tile is the same across all four so they read as a set the portal
+// issued, rather than four logos pasted in. Colour and glyph do the work.
+function RfAgencyMark({ partner, size = 34 }) {
+  const glyph = RF_PARTNER_GLYPHS[partner.id];
+  if (!glyph) return null;
+  return (
+    <span
+      className="rf-agency-tile"
+      style={{ background: partner.accent, width: size, height: size, flexBasis: size }}
+      aria-hidden="true"
+    >
+      <svg viewBox="0 0 24 24" width={Math.round(size * 0.62)} height={Math.round(size * 0.62)}>
+        {glyph}
+      </svg>
+    </span>
+  );
+}
 
 const RF_DEALS = [
   // --- Coastline Property Group (agents want to know the buyer can bid) ---
@@ -260,82 +319,25 @@ const RF_DEALS = [
   },
 ];
 
-// ---- pricing ------------------------------------------------------------
+// ---- what they get ------------------------------------------------------
 //
-// Priced on partner count, not staff seats. Partner count is the number that
-// grows when the customer succeeds, so the account expands without anyone
-// having to sell into it again. Staff seats are the wrong meter: a firm adds
-// those once and never again.
+// No pricing anywhere on this page: Josh has not settled on it yet, and a
+// number on screen is a number he is committed to the moment Ben reads it.
+// Cost is a conversation, not a slide. This list is what the conversation is
+// about.
 
-const RF_PLANS = [
-  {
-    id: 'solo',
-    name: 'Solo',
-    price: '$99',
-    per: 'per month',
-    cap: 3,
-    monthly: 99,
-    best: 'One broker, a handful of referrers.',
-    features: [
-      'Up to 3 referral partner portals',
-      'Unlimited deals',
-      'Hosted at readyfinance.brokenmind.com.au',
-      '2 staff logins',
-      'Full stage history on every deal',
-      'Email support',
-    ],
-  },
-  {
-    id: 'practice',
-    name: 'Practice',
-    price: '$249',
-    per: 'per month',
-    cap: 10,
-    monthly: 249,
-    featured: true,
-    best: 'Where Ready Finance would start. Four partners today, room for ten.',
-    features: [
-      'Up to 10 referral partner portals',
-      'Your own address: ' + RF.domain,
-      'Ready Finance logo and colours throughout',
-      '5 staff logins',
-      'Custom pipeline stages, the ones on this board',
-      'Partner activity reporting',
-      'Priority email support',
-    ],
-  },
-  {
-    id: 'brokerage',
-    name: 'Brokerage',
-    price: '$499',
-    per: 'per month',
-    cap: 25,
-    monthly: 499,
-    best: 'If the referral network runs past ten.',
-    features: [
-      'Up to 25 referral partner portals',
-      'Unlimited staff logins',
-      'Per-broker views and reporting',
-      'Custom stages per partner type',
-      'Onboarding call for each new partner',
-      'Priority support',
-    ],
-  },
+const RF_INCLUDED = [
+  'The board on your own address: ' + RF.domain,
+  'Ready Finance logo and colours throughout, as on this page',
+  'A separate portal for every referral partner',
+  'Each partner sees only the buyers they referred, enforced in the database',
+  'Your pipeline stages, the ones running on this board',
+  'Full stage and note history on every deal',
+  'Logins for your team, each person named on the notes they write',
+  'Partner activity reporting',
+  'Data held in Australia, encrypted, separated per firm',
+  'A written data processing agreement before anything goes live',
 ];
-
-const RF_ADDONS = [
-  ['Extra referral partner', '+$25 per month each', 'Past 25 partners. Add or remove them whenever.'],
-  ['Setup and onboarding', '$750 once', 'Practice and Brokerage. Domain, branding, data import, a training call for the team.'],
-  ['Annual payment', '2 months free', 'Pay for 12 months up front, pay for 10.'],
-];
-
-// Cheapest plan that fits n partners, plus $25 each past the top cap.
-function rfQuote(n) {
-  const plan = RF_PLANS.find((p) => n <= p.cap) || RF_PLANS[RF_PLANS.length - 1];
-  const top = RF_PLANS[RF_PLANS.length - 1];
-  const extras = Math.max(0, n - top.cap);
-  return { plan, extras, total: plan.monthly + extras * 25 };
-}
 
 const RF_SETUP = [
   {
@@ -379,13 +381,17 @@ const RF_SETUP = [
 // ---- login screen mock --------------------------------------------------
 //
 // Answers the first question a referrer asks, which is "what do I actually
-// get sent?". Purely a picture: the form does nothing, and the button drops
-// the viewer onto the board as that partner.
+// get sent?". Purely a picture: the fields do nothing, and the button drops
+// the viewer onto the board.
+//
+// Deliberately just email and password. An earlier version had the referrer
+// pick their agency from a dropdown, which would have published the list of
+// firms Ready Finance deals with to anyone who opened the login page. Who a
+// broker's referral partners are is commercially sensitive, so the sign-in
+// screen never names one. The account behind the email decides which board
+// loads, exactly as it does in the live product.
 
 function RfLoginMock({ onEnter }) {
-  const [who, setWho] = useStateRf(RF_PARTNERS[0].id);
-  const partner = RF_PARTNERS.find((p) => p.id === who) || RF_PARTNERS[0];
-
   return (
     <div className="rf-login-wrap">
       <div className="rf-login-card">
@@ -397,27 +403,15 @@ function RfLoginMock({ onEnter }) {
 
         <form
           className="rf-login-form"
-          onSubmit={(e) => { e.preventDefault(); onEnter(who); }}
+          onSubmit={(e) => { e.preventDefault(); onEnter(); }}
         >
-          <label className="deal-label" htmlFor="rf-login-partner">Your agency</label>
-          <select
-            id="rf-login-partner"
-            className="rf-login-input"
-            value={who}
-            onChange={(e) => setWho(e.target.value)}
-          >
-            {RF_PARTNERS.map((p) => (
-              <option key={p.id} value={p.id}>{p.name}</option>
-            ))}
-          </select>
-
           <label className="deal-label" htmlFor="rf-login-email">Email</label>
           <input
             id="rf-login-email"
             className="rf-login-input"
             type="email"
             readOnly
-            value={`${partner.signedInAs.toLowerCase()}@example.com`}
+            value="you@youragency.com.au"
           />
 
           <label className="deal-label" htmlFor="rf-login-pw">Password</label>
@@ -430,6 +424,7 @@ function RfLoginMock({ onEnter }) {
           />
 
           <button type="submit" className="rf-login-btn">Sign in</button>
+          <span className="rf-login-help">Forgot your password?</span>
         </form>
 
         <p className="rf-login-foot">
@@ -443,85 +438,27 @@ function RfLoginMock({ onEnter }) {
   );
 }
 
-// ---- pricing and setup --------------------------------------------------
+// ---- what's included and how it goes live -------------------------------
 
-function RfPricing() {
-  const [count, setCount] = useStateRf(RF_PARTNERS.length);
-  const quote = rfQuote(count);
-
+function RfHowItWorks() {
   return (
     <div className="pd-pricing">
       <section className="pd-sec">
-        <h2 className="pd-h2">What it costs Ready Finance</h2>
+        <h2 className="pd-h2">What Ready Finance gets</h2>
         <p className="pd-lede">
-          Priced on how many referral partners get a portal, not on staff seats.
-          Add partners as they are won, remove them if a relationship ends. No
-          lock-in contract, cancel any month.
+          A portal for every referral partner, on your address, under your brand.
+          Add partners as they are won, switch one off if a relationship ends.
         </p>
 
-        <div className="rf-calc">
-          <label className="rf-calc-label" htmlFor="rf-calc-range">
-            Referral partners with a portal
-          </label>
-          <div className="rf-calc-row">
-            <input
-              id="rf-calc-range"
-              className="rf-calc-range"
-              type="range"
-              min="1"
-              max="30"
-              step="1"
-              value={count}
-              onChange={(e) => setCount(Number(e.target.value))}
-            />
-            <span className="rf-calc-count">{count}</span>
-          </div>
-          <p className="rf-calc-out">
-            <span className="rf-calc-total">${quote.total}</span>
-            <span className="rf-calc-per">per month, plus GST</span>
-          </p>
-          <p className="rf-calc-detail">
-            {quote.plan.name} plan at {quote.plan.price}
-            {quote.extras > 0 ? `, plus ${quote.extras} extra partner${quote.extras === 1 ? '' : 's'} at $25 each` : ''}.
-            {count === RF_PARTNERS.length ? ' That is the four partners on the demo board.' : ''}
-          </p>
-        </div>
-
-        <div className="pd-plans">
-          {RF_PLANS.map((p) => (
-            <div key={p.id} className={`pd-plan${p.featured ? ' is-featured' : ''}`}>
-              {p.featured && <span className="pd-plan-flag">Recommended for Ready Finance</span>}
-              <h3 className="pd-plan-name">{p.name}</h3>
-              <p className="pd-plan-price">
-                <span className="pd-plan-amount">{p.price}</span>
-                <span className="pd-plan-per">{p.per}</span>
-              </p>
-              <p className="pd-plan-best">{p.best}</p>
-              <ul className="pd-plan-feats">
-                {p.features.map((f, i) => (
-                  <li key={i}><span className="pd-tick" aria-hidden="true">✓</span>{f}</li>
-                ))}
-              </ul>
-            </div>
+        <ul className="pd-included">
+          {RF_INCLUDED.map((f, i) => (
+            <li key={i}><span className="pd-tick" aria-hidden="true">✓</span>{f}</li>
           ))}
-        </div>
-
-        <table className="pd-addons">
-          <tbody>
-            {RF_ADDONS.map(([what, cost, detail], i) => (
-              <tr key={i}>
-                <th scope="row">{what}</th>
-                <td className="pd-addon-cost">{cost}</td>
-                <td className="pd-addon-detail">{detail}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        </ul>
 
         <p className="pd-fineprint">
-          All prices in AUD and exclude GST. Ready Finance on Practice with the
-          four partners on this board is $249 a month, plus the one-off $750
-          setup.
+          Cost is not on this page on purpose. Josh will talk it through with
+          Ben directly rather than have a number sit here out of context.
         </p>
       </section>
 
@@ -581,8 +518,8 @@ function RfPricing() {
 
           <dt>What if a referral relationship ends?</dt>
           <dd>
-            Switch that portal off. Their access dies immediately, the deals stay
-            on the Ready Finance board, and the bill drops the following month.
+            Switch that portal off. Their access dies immediately and the deals
+            stay on the Ready Finance board.
           </dd>
 
           <dt>Can partners lodge referrals through it?</dt>
@@ -617,8 +554,8 @@ function RfDemoBar({ viewer, onViewer, onReset, dirty, mode, onMode }) {
                     onClick={() => onMode('board')}>The board</button>
             <button type="button" className={`pd-seg-btn${mode === 'login' ? ' is-on' : ''}`}
                     onClick={() => onMode('login')}>Login screen</button>
-            <button type="button" className={`pd-seg-btn${mode === 'pricing' ? ' is-on' : ''}`}
-                    onClick={() => onMode('pricing')}>Pricing &amp; setup</button>
+            <button type="button" className={`pd-seg-btn${mode === 'how' ? ' is-on' : ''}`}
+                    onClick={() => onMode('how')}>How it works</button>
           </div>
         </div>
 
@@ -658,6 +595,7 @@ function RfRow({ deal, canEdit, open, onToggle, onStage, onNote }) {
   const tone = rfTone(deal.stage);
   const notes = deal.notes;
   const latest = notes[0];
+  const partner = RF_PARTNERS.find((p) => p.id === deal.partner);
 
   const submitNote = (e) => {
     e.preventDefault();
@@ -716,7 +654,11 @@ function RfRow({ deal, canEdit, open, onToggle, onStage, onNote }) {
             <div className="board-detail">
               <div className="board-detail-facts">
                 <p className="deal-updated">Last updated: {rfWhen(deal.updated)}</p>
-                <p className="deal-updated">Referred by: {deal.partnerName}</p>
+                <p className="deal-updated rf-referred">
+                  Referred by:
+                  {partner && <RfAgencyMark partner={partner} size={22} />}
+                  <span className="rf-referred-name">{deal.partnerName}</span>
+                </p>
               </div>
 
               <ol className="deal-history">
@@ -797,7 +739,7 @@ function RfGroup({ stage, deals, collapsed, onToggleGroup, openIds, onToggleRow,
 function ReadyFinanceDemoPage() {
   rfNoIndex();
 
-  const [mode, setMode] = useStateRf('board');          // 'board' | 'login' | 'pricing'
+  const [mode, setMode] = useStateRf('board');          // 'board' | 'login' | 'how'
   const [viewer, setViewer] = useStateRf('staff');
   const [overrides, setOverrides] = useStateRf({});     // dealId -> { stage, notes, updated }
   const [openIds, setOpenIds] = useStateRf(() => new Set());
@@ -880,8 +822,11 @@ function ReadyFinanceDemoPage() {
     }));
   };
 
-  const enterAsPartner = (partnerId) => {
-    setViewer(partnerId);
+  // Signing in on the mock lands on a partner's read-only board, which is the
+  // view the login screen implies. Which partner is not chosen on that screen
+  // (see RfLoginMock); Josh switches between them from the demo bar.
+  const enterAsPartner = () => {
+    setViewer(RF_PARTNERS[0].id);
     setMode('board');
   };
 
@@ -904,9 +849,9 @@ function ReadyFinanceDemoPage() {
         </div>
       )}
 
-      {mode === 'pricing' && (
+      {mode === 'how' && (
         <div className="deal-page">
-          <RfPricing />
+          <RfHowItWorks />
           <footer className="pd-foot">
             <p className="pd-foot-credit">
               Referral Partner Portal · built by{' '}
@@ -938,12 +883,17 @@ function ReadyFinanceDemoPage() {
                 <span className="pd-whoami-sub">Full access · all referral partners</span>
               </React.Fragment>
             ) : (
-              <React.Fragment>
-                <span className="deal-role">{activePartner.name}</span>
-                <span className="pd-whoami-sub">
-                  Signed in as {activePartner.signedInAs} · {activePartner.kind} · view only
+              // Co-branded: Ready Finance's portal, but the agency looking at
+              // it sees itself in the corner.
+              <div className="rf-whoami-partner">
+                <RfAgencyMark partner={activePartner} />
+                <span className="rf-whoami-text">
+                  <span className="deal-role">{activePartner.name}</span>
+                  <span className="pd-whoami-sub">
+                    Signed in as {activePartner.signedInAs} · {activePartner.kind} · view only
+                  </span>
                 </span>
-              </React.Fragment>
+              </div>
             )}
           </div>
         </header>
