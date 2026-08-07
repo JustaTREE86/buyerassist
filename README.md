@@ -39,6 +39,8 @@ Built by **BrokenMind Software**.
 - **Josh's quick quote** (`/autozone-apply`) — **hidden**, not linked from nav/footer/sitemap. Full-bleed embed of Josh's personal AFOS referral widget (`page-autozone.jsx`) — a link he sends directly to clients.
 - **Apply with Josh** (`/apply/josh`) — **hidden**, not linked from nav/footer/sitemap. Same embed as `/autozone-apply` (reuses `AutozoneApplyPage`), at a clean vanity URL Josh posts publicly (Facebook, etc) instead of the AFOS referral link.
 - **KO Cars quick quote** (`/ko-apply`) — **hidden**, not linked from nav/footer/sitemap. The KO Cars twin of `/autozone-apply` (`page-ko.jsx`), headed "KO Cars · with Josh", for Charlie and the KO Cars floor to send to their customers. Same AFOS widget as `/autozone-apply` — swap `KO_WIDGET_URL` if a KO-specific referral widget is ever set up.
+- **Referral Partner Portal demo** (`/portal-demo`) — **hidden**, not linked from nav/footer/sitemap. The generic sales prototype (`page-portal-demo.jsx`) Josh shows to any broker: six referrer verticals, a viewer switcher, pricing and setup. Entirely invented data, no API, no login.
+- **Ready Finance Group demo** (`/portal-demo/ready-finance`) — **hidden**, not linked from nav/footer/sitemap. The same product (`page-rf-demo.jsx`) pre-branded for one prospect: real Ready Finance logo and blue (`#1681B7`), a home loan pipeline, and their four kinds of referrer (agency, buyers advocate, conveyancer, accountant). Three views off the demo bar: the board, a partner login mock, and pricing with a live partner-count calculator. Same rules as `/portal-demo` — no API, no login, every applicant and note invented, phone numbers from the ACMA fiction range. **Before sending the link, confirm `RF.domain` in `page-rf-demo.jsx`** — `partners.readyfinance.com.au` is a placeholder built from their trading name, not a domain anyone has confirmed.
 - **AutoZone staff ad copy** (`/autozone-staff`) — **hidden**, not linked from nav/footer/sitemap. Internal reference (`page-autozone-staff.jsx`) AutoZone QLD staff open to copy ready-made, compliant Facebook ad copy per vehicle price ($9,990–$99,990). Repayments computed live from the locked offer (11.95% p.a. / 60 mth / $550 estab + $1,210 brokerage). NOT the customer page. Comparison rate 14.49% is flagged `[VERIFY with licensee]`.
 
 All pages are real, deep-linkable URLs (browser back/forward and page refresh both work) — routing lives in `app.jsx` (`ROUTES` / `pathFor` / `parsePath`).
@@ -119,6 +121,8 @@ Without these set, `/staff/debt-busters` still loads and rejects logins with a c
 | `page-staff.jsx` | Hidden `/staff/debt-busters` page — password gate + outcome form |
 | `page-autozone.jsx` | Hidden `/autozone-apply` page — full-bleed embed of Josh's personal AFOS referral widget |
 | `page-ko.jsx` | Hidden `/ko-apply` page — same embed, KO Cars header, for Charlie to send to KO customers |
+| `page-portal-demo.jsx` | Hidden `/portal-demo` — generic Referral Partner Portal sales demo, six referrer verticals |
+| `page-rf-demo.jsx` | Hidden `/portal-demo/ready-finance` — the same demo pre-branded for Ready Finance Group |
 | `app.jsx` | Router (`ROUTES`/`pathFor`/`parsePath`), Nav, Footer, top-level `App` |
 | `tweaks-panel.jsx` | Client design tweaks panel (only opens when driven by an external host — no visible toggle in production) |
 | `api/staff-auth.js` | Serverless — checks the staff password |
@@ -126,3 +130,5 @@ Without these set, `/staff/debt-busters` still loads and rejects logins with a c
 | `api/_util.js` | Shared helpers for the two functions above (not its own route — Vercel skips `_`-prefixed files) |
 | `robots.txt` | Blocks `/staff/` from indexing; everything else is `Allow` |
 | `assets/leonie.avif` | Leonie — Director portrait |
+| `assets/ready-finance-logo.png` | Ready Finance colour logo — partners page + the RF demo brand bar and login mock |
+| `assets/ready-finance-logo-white.png` | Ready Finance reversed logo — the RF demo's dark control bar |

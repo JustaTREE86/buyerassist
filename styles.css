@@ -2012,7 +2012,16 @@ h1, h2, h3, h4 { margin: 0; font-family: var(--serif); font-weight: 400; letter-
    pricing / setup panel.
    ============================================================= */
 
-.pd-shell { padding-top: 0; }
+/* .deal-shell is a centring flexbox built for the dealer login box, so on the
+   demo pages it laid the control bar, the blurb and the board out as three
+   side-by-side flex items and squeezed the bar to a few hundred pixels. These
+   pages stack full-bleed instead: the bar spans the window and sticks, the
+   board sits under it. */
+.pd-shell {
+  display: block;
+  padding: 0;
+  min-height: 100vh;
+}
 
 /* --- demo control bar ---------------------------------------- */
 /* Dark and deliberately unlike the product, so a prospect never
@@ -2310,6 +2319,10 @@ h1, h2, h3, h4 { margin: 0; font-family: var(--serif); font-weight: 400; letter-
 }
 
 @media (max-width: 720px) {
+  /* Stacked, the control bar is over 300px tall. Sticking that to the top of a
+     phone leaves almost no room for the board it is controlling, so on small
+     screens it scrolls away with the rest of the page. */
+  .pd-bar { position: static; }
   .pd-bar-inner { gap: 14px; padding: 11px 16px; }
   .pd-bar-group { width: 100%; align-items: flex-start; flex-direction: column; gap: 6px; }
   .pd-bar-end { margin-left: 0; flex-direction: row; align-items: center; }
@@ -2321,4 +2334,154 @@ h1, h2, h3, h4 { margin: 0; font-family: var(--serif); font-weight: 400; letter-
   .pd-addons td { display: block; width: auto; padding: 2px 0; }
   .pd-addons tr { padding: 12px 0; display: block; }
   .pd-step { gap: 13px; }
+}
+
+/* =============================================================
+   Ready Finance Group demo (/portal-demo/ready-finance)
+
+   Everything shared with the generic portal demo stays on the
+   .pd-* / .board-* / .deal-* rules above. Only the pieces that
+   exist because this build is branded for one firm live here:
+   the real logo lockup, the price calculator, and the partner
+   login mock. --pd-accent is set inline to the Ready Finance
+   blue (#1681B7), so the brand bar picks it up for free.
+   ============================================================= */
+
+/* --- logo in the dark demo bar -------------------------------- */
+.rf-bar-brand { flex: 0 0 auto; }
+.rf-bar-logo {
+  height: 20px;
+  width: auto;
+  display: block;
+  /* The white logo has no padding of its own, so give it a little
+     breathing room from the "View" group that follows. */
+  margin-right: 4px;
+}
+
+/* --- brand header above the board ----------------------------- */
+/* The generic demo draws an initials square. Ready Finance has a
+   real logo, so it gets the real thing instead. */
+.rf-brandbar .pd-brand { flex-direction: column; align-items: flex-start; gap: 6px; }
+.rf-brand-logo {
+  height: 38px;
+  width: auto;
+  display: block;
+  max-width: 100%;
+}
+.rf-brand-domain {
+  font-size: 12.5px;
+  color: rgba(10, 31, 61, 0.5);
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- price calculator ----------------------------------------- */
+/* The number Ben actually wants: what it costs him at the size he
+   is, and what it costs when the network doubles. */
+.rf-calc {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 20px 22px;
+  margin-bottom: 26px;
+  background: var(--bone);
+}
+.rf-calc-label {
+  display: block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: rgba(10, 31, 61, 0.55);
+  margin-bottom: 10px;
+}
+.rf-calc-row { display: flex; align-items: center; gap: 16px; }
+.rf-calc-range { flex: 1 1 auto; min-width: 0; accent-color: var(--pd-accent, #1681B7); }
+.rf-calc-range:focus-visible { outline: 2px solid var(--pd-accent, #1681B7); outline-offset: 4px; }
+.rf-calc-count {
+  flex: 0 0 auto;
+  min-width: 2.5ch;
+  text-align: right;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--pd-accent, #1681B7);
+  font-variant-numeric: tabular-nums;
+}
+.rf-calc-out { display: flex; align-items: baseline; gap: 8px; margin: 14px 0 4px; }
+.rf-calc-total {
+  font-size: 34px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--pd-accent, #1681B7);
+  font-variant-numeric: tabular-nums;
+}
+.rf-calc-per { font-size: 14px; color: var(--muted); }
+.rf-calc-detail { font-size: 13.5px; color: var(--muted); margin: 0; }
+
+/* --- partner login mock --------------------------------------- */
+/* A picture of the first thing a referrer sees. The form is inert;
+   the button just drops the viewer onto that partner's board. */
+.rf-login-wrap { padding: 48px 0 40px; display: flex; flex-direction: column; align-items: center; }
+.rf-login-card {
+  width: 100%;
+  max-width: 420px;
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--pd-accent, #1681B7);
+  border-radius: 12px;
+  background: #FFFFFF;
+  padding: 32px 30px 26px;
+  box-shadow: 0 14px 40px rgba(10, 31, 61, 0.07);
+}
+.rf-login-logo { height: 34px; width: auto; display: block; margin-bottom: 22px; }
+.rf-login-title { font-family: var(--sans); font-size: 21px; font-weight: 600; margin: 0 0 6px; }
+.rf-login-sub { font-size: 14px; color: var(--muted); margin: 0 0 22px; line-height: 1.55; }
+.rf-login-form { display: flex; flex-direction: column; gap: 4px; }
+.rf-login-form .deal-label { margin-top: 10px; }
+.rf-login-input {
+  width: 100%;
+  font: inherit;
+  font-size: 14.5px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--bone);
+  color: var(--ink);
+}
+.rf-login-input[readonly] { color: var(--muted); }
+.rf-login-input:focus-visible { outline: 2px solid var(--pd-accent, #1681B7); outline-offset: 1px; }
+.rf-login-btn {
+  appearance: none;
+  border: 0;
+  margin-top: 20px;
+  width: 100%;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  padding: 12px 16px;
+  border-radius: 8px;
+  background: var(--pd-accent, #1681B7);
+  color: #FFFFFF;
+  cursor: pointer;
+  transition: filter 0.14s ease;
+}
+.rf-login-btn:hover { filter: brightness(1.08); }
+.rf-login-btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.rf-login-foot {
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--muted);
+  margin: 20px 0 0;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+.rf-login-url {
+  font-size: 12.5px;
+  color: rgba(10, 31, 61, 0.42);
+  margin: 16px 0 0;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 720px) {
+  .rf-brand-logo { height: 30px; }
+  .rf-calc { padding: 16px 16px 18px; }
+  .rf-calc-total { font-size: 28px; }
+  .rf-login-wrap { padding: 28px 0 24px; }
+  .rf-login-card { padding: 26px 20px 22px; }
 }

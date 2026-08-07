@@ -1,4 +1,4 @@
-/* global React, ReactDOM, LogoExisting, LogoProposed, Icon, HomePage, ServicesPage, AboutPage, ApplyPage, BrokerProfilePage, PartnersPage, CreditRepairPage, CreditRepairEnquiryPage, PrivacyPage, ClientsPage, StaffDebtBustersPage, DealerKoCarsPage, AutozoneApplyPage, AutozoneStaffPage, KoApplyPage, PortalDemoPage, LOANS, afosLink, useTweaks, TweaksPanel, TweakSection, TweakRadio, TweakColor */
+/* global React, ReactDOM, LogoExisting, LogoProposed, Icon, HomePage, ServicesPage, AboutPage, ApplyPage, BrokerProfilePage, PartnersPage, CreditRepairPage, CreditRepairEnquiryPage, PrivacyPage, ClientsPage, StaffDebtBustersPage, DealerKoCarsPage, AutozoneApplyPage, AutozoneStaffPage, KoApplyPage, PortalDemoPage, ReadyFinanceDemoPage, LOANS, afosLink, useTweaks, TweaksPanel, TweakSection, TweakRadio, TweakColor */
 const { useState: useStateApp, useEffect: useEffectApp } = React;
 
 // Makes an onClick element keyboard-operable (Enter/Space) and exposes it to
@@ -115,6 +115,10 @@ const ROUTES = [
   // brokers. Entirely invented data, no API, no login. Not linked from Nav,
   // the footer or the sitemap; the URL is handed out directly.
   { id: 'portal-demo', path: '/portal-demo' },
+  // The same demo, pre-branded for one prospect: Ready Finance Group. Their
+  // logo, their blue, a home loan pipeline, their kind of referrers. Handed to
+  // Ben directly; not linked from Nav, the footer or the sitemap.
+  { id: 'rf-demo', path: '/portal-demo/ready-finance' },
 ];
 
 const TITLES = {
@@ -135,6 +139,7 @@ const TITLES = {
   'autozone-staff': 'AutoZone Staff Ad Copy — The Buyer Assist Group',
   'ko-apply': 'KO Cars Quick Quote — The Buyer Assist Group',
   'portal-demo': 'Referral Partner Portal — demo',
+  'rf-demo': 'Referral Partner Portal · Ready Finance Group demo',
 };
 
 function pathFor(page, state = {}) {
@@ -491,6 +496,12 @@ function App() {
   // footer or tweaks panel around it.
   if (page === 'portal-demo') {
     return <PortalDemoPage/>;
+  }
+
+  // Same demo, pre-branded for Ready Finance Group. Isolated for the same
+  // reason: Ben should see his own portal, not Buyer Assist's chrome around it.
+  if (page === 'rf-demo') {
+    return <ReadyFinanceDemoPage/>;
   }
 
   // Apply page is full-bleed (no nav/footer)
