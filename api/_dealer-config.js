@@ -1,4 +1,5 @@
-// Roster of who can sign in to each dealer's read-only dashboard.
+// Roster of who can sign in to each dealer's dashboard.
+// Logins are read-only by default; role: 'staff' grants board administration.
 //
 // Add a salesperson later = add a row here, set the matching env var in
 // Vercel (Production AND Preview), tell them their password. Nothing else
@@ -12,6 +13,7 @@ const DEALER_LOGINS = {
   'ko-cars': [
     { passwordEnv: 'KO_CARS_ALAN_PASSWORD', salesperson: 'Alan' },
     { passwordEnv: 'KO_CARS_CHARLIE_PASSWORD', salesperson: 'Charlie' },
+    { passwordEnv: 'KO_CARS_JACOB_PASSWORD', salesperson: 'Jacob', role: 'staff' },
   ],
 };
 

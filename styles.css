@@ -26,7 +26,7 @@
 
   /* Scale */
   --container: 1280px;
-  --gutter: clamp(20px, 4vw, 56px);
+  --gutter: clamp(24px, 4vw, 56px);
   --radius: 4px;
   --radius-lg: 12px;
 }
@@ -349,7 +349,8 @@ h1, h2, h3, h4 { margin: 0; font-family: var(--serif); font-weight: 400; letter-
 }
 .hero-inner {
   position: relative; z-index: 2;
-  padding: clamp(80px, 14vw, 180px) 0 clamp(60px, 10vw, 140px);
+  padding-top: clamp(80px, 14vw, 180px);
+  padding-bottom: clamp(60px, 10vw, 140px);
   min-height: 88vh;
   display: flex; flex-direction: column; justify-content: flex-end;
 }
@@ -428,7 +429,8 @@ h1, h2, h3, h4 { margin: 0; font-family: var(--serif); font-weight: 400; letter-
 .hero.portrait { background: var(--cream); color: var(--ink); }
 .hero.portrait .hero-inner {
   min-height: 92vh;
-  padding: clamp(80px, 12vw, 160px) 0 clamp(40px, 6vw, 80px);
+  padding-top: clamp(80px, 12vw, 160px);
+  padding-bottom: clamp(40px, 6vw, 80px);
   position: relative; z-index: 2;
 }
 .hero.portrait .portrait-grid {
@@ -1143,7 +1145,7 @@ h1, h2, h3, h4 { margin: 0; font-family: var(--serif); font-weight: 400; letter-
 }
 
 @media (max-width: 560px) {
-  :root { --gutter: 20px; }
+  :root { --gutter: 24px; }
   .section { padding: 64px 0; }
   .section.tight { padding: 48px 0; }
 
@@ -1156,14 +1158,14 @@ h1, h2, h3, h4 { margin: 0; font-family: var(--serif); font-weight: 400; letter-
   .nav-logo { font-size: 14px; }
 
   /* Hero portrait */
-  .hero.portrait .hero-inner { padding: 56px 0 32px; min-height: 0; }
+  .hero.portrait .hero-inner { padding-top: 56px; padding-bottom: 32px; min-height: 0; }
   .hero.portrait .portrait-grid { min-height: 0; gap: 32px; }
   .hero.portrait .display { font-size: 56px; line-height: 0.92; }
   .hero.portrait .pt-photo { aspect-ratio: 4 / 5; max-width: 100%; }
   .hero.portrait .hero-values { margin-top: 32px; }
 
   /* Hero default cinematic */
-  .hero-inner { min-height: 0; padding: 80px 0 60px; }
+  .hero-inner { min-height: 0; padding-top: 80px; padding-bottom: 60px; }
   .hero-grid { gap: 32px; }
   .display { font-size: 52px !important; line-height: 0.95 !important; }
   .hero-sub { font-size: 17px; }
@@ -1658,6 +1660,8 @@ h1, h2, h3, h4 { margin: 0; font-family: var(--serif); font-weight: 400; letter-
   text-transform: uppercase; letter-spacing: 0.06em;
 }
 
+}
+
 .deal-controls {
   display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap;
   margin-top: 24px;
@@ -1914,6 +1918,24 @@ h1, h2, h3, h4 { margin: 0; font-family: var(--serif); font-weight: 400; letter-
 }
 .deal-hint { font-size: 13px; color: var(--muted); margin-top: -6px; }
 .deal-form-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 8px; flex-wrap: wrap; }
+
+/* Invoice request: website lookup + stock picker. */
+.deal-lookup { display: flex; gap: 10px; align-items: flex-end; }
+.deal-lookup .bp-field { flex: 1; margin-bottom: 0; }
+.deal-lookup .deal-btn-sm { align-self: flex-end; white-space: nowrap; }
+.deal-candidates { list-style: none; margin: 0; padding: 0; border: 1px solid var(--line); border-radius: 6px; max-height: 240px; overflow-y: auto; }
+.deal-candidates li + li { border-top: 1px solid var(--line); }
+.deal-candidate {
+  display: flex; justify-content: space-between; gap: 12px; width: 100%;
+  padding: 10px 12px; background: none; border: 0; text-align: left;
+  font: inherit; font-size: 14px; color: var(--ink); cursor: pointer;
+}
+.deal-candidate:hover { background: rgba(10, 31, 61, 0.05); }
+.deal-candidate:focus-visible { outline: 2px solid var(--gold); outline-offset: -2px; }
+.deal-candidate-price { color: var(--muted); white-space: nowrap; }
+@media (max-width: 560px) {
+  .deal-lookup { flex-direction: column; align-items: stretch; }
+}
 
 /* Quick entry: one box, everything else fills in underneath it. */
 .deal-quick { display: flex; flex-direction: column; gap: 10px; }
@@ -2417,4 +2439,196 @@ h1, h2, h3, h4 { margin: 0; font-family: var(--serif); font-weight: 400; letter-
   .rf-whoami-text { align-items: flex-start; text-align: left; }
   .rf-login-wrap { padding: 28px 0 24px; }
   .rf-login-card { padding: 26px 20px 22px; }
+}
+
+/* =============================================================
+   REAL REFERRAL PARTNER PORTAL  (/portal/:slug, page-portal.jsx)
+   =============================================================
+   The live product, as opposed to the two demos above. It reuses
+   the .deal-*, .board-*, .bp-* and .rf-* rules wholesale — these
+   are only the pieces the demos have no equivalent of, because
+   they have no login, no sign-out and no internal notes. */
+
+/* Partner mark, initials version. The demo draws bespoke glyphs
+   for four invented agencies; a real portal takes whatever firms
+   it is given, so the mark is generated from the name and the
+   firm's own colour rather than shipped as an asset. */
+.pt-mark {
+  font-family: var(--sans);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1;
+}
+
+/* Brand fallbacks. A brokerage without a logo on file still needs
+   a header and a login screen that look deliberate. */
+.rf-login-brandname {
+  font-family: var(--sans);
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  margin: 0 0 22px;
+  color: var(--pd-accent, var(--ink));
+}
+.rf-brand-name {
+  font-family: var(--sans);
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.pt-signout { margin-top: 8px; align-self: flex-end; }
+
+/* Internal notes. Visually distinct because the difference matters:
+   an "internal" note is the one thing on the board the referring
+   partner will never read, and staff have to be able to tell at a
+   glance which they are writing. Partners never receive these rows
+   at all, so this styling is for staff only. */
+.pt-internal-toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 8px 0 4px;
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--muted);
+  cursor: pointer;
+}
+.pt-internal-toggle input { margin-top: 2px; flex: 0 0 auto; }
+
+.pt-note-internal { opacity: 0.82; }
+.pt-note-tag {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: rgba(10, 31, 61, 0.08);
+  color: var(--muted);
+}
+
+/* A message from the referring firm, as opposed to an update from
+   the brokerage. Both directions land in the same history, so the
+   distinction has to be visible at a glance on a board that might
+   hold thirty rows: the brokerage needs to spot "the agent asked
+   something" without opening every deal. */
+.pt-note-tag-partner {
+  background: rgba(22, 129, 183, 0.14);
+  color: #10557a;
+}
+.pt-note-frompartner {
+  border-left: 2px solid rgba(22, 129, 183, 0.5);
+  padding-left: 10px;
+  margin-left: -12px;
+}
+/* First thing in the cell rather than trailing a timestamp, so it
+   reads as a label on the note instead of part of the byline. */
+.board-cell-note .pt-note-tag {
+  margin: 0 0 3px;
+}
+
+/* ---- referral partner management (staff only) ---------------- */
+
+.pt-panel { max-width: 640px; }
+.pt-panel-body { max-height: 60vh; overflow-y: auto; }
+.pt-panel-intro {
+  margin: 0 0 16px;
+  font-size: 13.5px;
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+.pt-partner-list { list-style: none; margin: 0; padding: 0; }
+.pt-partner {
+  padding: 12px 0;
+  border-top: 1px solid rgba(10, 31, 61, 0.1);
+}
+.pt-partner:first-child { border-top: 0; }
+/* Switched off, not gone. Faded rather than hidden, because their
+   referrals are still on the board and staff need to understand
+   why that firm can no longer sign in. */
+.pt-partner.is-off { opacity: 0.55; }
+
+.pt-partner-head { display: flex; align-items: center; gap: 10px; }
+.pt-partner-id { display: flex; flex-direction: column; min-width: 0; }
+.pt-partner-name {
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--ink);
+}
+.pt-partner-meta {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.pt-partner-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0 0 44px;
+}
+.pt-danger { color: #a3282d; border-color: rgba(163, 40, 45, 0.35); }
+
+.pt-swatches { display: flex; flex-wrap: wrap; gap: 8px; }
+.pt-swatch {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  box-shadow: 0 0 0 1px rgba(10, 31, 61, 0.12);
+  cursor: pointer;
+  padding: 0;
+}
+.pt-swatch.is-on {
+  border-color: #fff;
+  box-shadow: 0 0 0 2px var(--ink);
+}
+
+/* ---- the access code, shown exactly once ---------------------- */
+
+.pt-code-body { padding-bottom: 4px; }
+.pt-code-label {
+  margin: 0 0 4px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+/* Monospace and spaced out because this gets read down a phone to
+   somebody's office manager. The alphabet already excludes 0/O and
+   1/I/L; the typeface is the other half of that job. */
+.pt-code {
+  margin: 0 0 12px;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--ink);
+  word-break: break-all;
+}
+.pt-code-warn { margin-bottom: 14px; }
+.pt-code-msg-label { display: block; margin: 18px 0 6px; }
+.pt-code-msg {
+  width: 100%;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 12px;
+  line-height: 1.6;
+  padding: 12px;
+  border: 1px solid rgba(10, 31, 61, 0.16);
+  border-radius: 8px;
+  background: rgba(10, 31, 61, 0.03);
+  color: var(--ink);
+  resize: vertical;
+}
+
+@media (max-width: 720px) {
+  .pt-signout { align-self: flex-start; }
+  .pt-partner-actions { margin-left: 0; }
+  .pt-code { font-size: 21px; letter-spacing: 0.08em; }
+  .pt-panel-body { max-height: none; }
 }

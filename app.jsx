@@ -107,9 +107,9 @@ const ROUTES = [
   // AutoZone QLD staff ad-copy tool — internal reference for the dealership,
   // not linked from Nav, the footer or the sitemap.
   { id: 'autozone-staff', path: '/autozone-staff' },
-  // KO Cars twin of autozone-apply — the quick-quote link Charlie and the KO
-  // Cars floor send to their customers. Not linked from Nav, the footer or
-  // the sitemap.
+  // The full finance application Charlie and the KO Cars floor send to their
+  // customers — replaced the AFOS quick-quote embed that used to sit here.
+  // Not linked from Nav, the footer or the sitemap.
   { id: 'ko-apply', path: '/ko-apply' },
   // Referral Partner Portal sales demo — the prototype Josh shows to other
   // brokers. Entirely invented data, no API, no login. Not linked from Nav,
@@ -119,6 +119,13 @@ const ROUTES = [
   // logo, their blue, a home loan pipeline, their kind of referrers. Handed to
   // Ben directly; not linked from Nav, the footer or the sitemap.
   { id: 'rf-demo', path: '/portal-demo/ready-finance' },
+  // The real Referral Partner Portal, as opposed to the two demos above.
+  // Password-gated, Supabase-backed, real client information. One route
+  // serves every brokerage — /portal/ready-finance is the first — with the
+  // branding, stage list and field labels coming from the portal_orgs row.
+  // Never linked from Nav, the footer or the sitemap; each firm is sent
+  // their own URL.
+  { id: 'portal', path: '/portal' },
 ];
 
 const TITLES = {
@@ -137,13 +144,20 @@ const TITLES = {
   'autozone-apply': 'Quick Quote — The Buyer Assist Group',
   'apply-josh': 'Apply with Josh — The Buyer Assist Group',
   'autozone-staff': 'AutoZone Staff Ad Copy — The Buyer Assist Group',
-  'ko-apply': 'KO Cars Quick Quote — The Buyer Assist Group',
+  // KO-only by Josh's instruction — no BAG suffix, unlike every other title
+  // here. This page is presented as KO Cars' own form.
+  'ko-apply': 'KO Cars — Finance Application',
   'portal-demo': 'Referral Partner Portal — demo',
   'rf-demo': 'Referral Partner Portal · Ready Finance Group demo',
+  // Placeholder only. PortalPage replaces this with the firm's own name as
+  // soon as /api/portal/session answers, so a shared link never shows one
+  // brokerage's name in the tab while another's board loads.
+  portal: 'Referral Partner Portal',
 };
 
 function pathFor(page, state = {}) {
   if (page === 'broker') return `/team/${state.id || ''}`;
+  if (page === 'portal') return `/portal/${state.slug || ''}`;
   const r = ROUTES.find(r => r.id === page);
   return r ? r.path : '/';
 }
@@ -154,6 +168,12 @@ function parsePath(pathname) {
   if (clean === '/dealer/ko-cars') return { page: 'dealer-ko-cars', state: {} };
   if (clean === '/eve') return { page: 'eve', state: {} };
   if (clean.startsWith('/team/')) return { page: 'broker', state: { id: clean.slice('/team/'.length) } };
+  // /portal/:slug — matched before the exact-path lookup below. The demo
+  // routes are unaffected: "/portal-demo" and "/portal-demo/ready-finance"
+  // do not start with "/portal/", so they still fall through to ROUTES.
+  if (clean.startsWith('/portal/')) {
+    return { page: 'portal', state: { slug: clean.slice('/portal/'.length).toLowerCase() } };
+  }
   const match = ROUTES.find(r => r.path === clean);
   return match ? { page: match.id, state: {} } : { page: 'home', state: {} };
 }
@@ -485,8 +505,9 @@ function App() {
     return <AutozoneStaffPage/>;
   }
 
-  // KO Cars quick-quote embed — same isolation as autozone-apply: nothing
-  // that leads a KO customer back into the marketing site or the tweaks panel.
+  // KO Cars full finance application — same isolation as autozone-apply:
+  // nothing that leads a KO customer back into the marketing site or the
+  // tweaks panel.
   if (page === 'ko-apply') {
     return <KoApplyPage/>;
   }
@@ -502,6 +523,13 @@ function App() {
   // reason: Ben should see his own portal, not Buyer Assist's chrome around it.
   if (page === 'rf-demo') {
     return <ReadyFinanceDemoPage/>;
+  }
+
+  // The real portal. Isolated for a stronger reason than the demos: this one
+  // holds live client information, and a referral partner signed into it must
+  // never be one click from Buyer Assist's marketing site or the tweaks panel.
+  if (page === 'portal') {
+    return <PortalPage slug={pageState.slug}/>;
   }
 
   // Apply page is full-bleed (no nav/footer)

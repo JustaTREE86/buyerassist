@@ -9,6 +9,7 @@
     { "src": "/ko-apply", "headers": { "X-Robots-Tag": "noindex, nofollow, noarchive, nosnippet" }, "continue": true },
     { "src": "/portal-demo", "headers": { "X-Robots-Tag": "noindex, nofollow, noarchive, nosnippet" }, "continue": true },
     { "src": "/portal-demo/(.*)", "headers": { "X-Robots-Tag": "noindex, nofollow, noarchive, nosnippet" }, "continue": true },
+    { "src": "/portal/(.*)", "headers": { "X-Robots-Tag": "noindex, nofollow, noarchive, nosnippet" }, "continue": true },
     { "handle": "filesystem" },
     { "src": "/(.*)", "dest": "/index.html" }
   ]

@@ -5,14 +5,19 @@
 // Private to Josh: not linked from nav, footer or sitemap, blocked from
 // indexing (robots.txt + vercel.json X-Robots-Tag + the noindex meta swap
 // below). One password (EVE_PASSWORD) gates it; the numbers live in Supabase
-// and are reached only through /api/eve/*.
+// and are reached only through /api/eve.
+//
+// That endpoint is one serverless function taking ?action=login|logout|
+// commissions, not three routes — Vercel's Hobby plan caps a deployment at 12
+// functions and this project hit it. The three handlers are unchanged in
+// api/_eve-routes/; see the header of api/portal.js.
 //
 // Each row is one deal: what Buyer Assist earned (commission), what it cost
 // (outgoings), and Eve's agreed share of the net:
 //   net     = commission - outgoings
 //   eve cut = round(net * cut_percent / 100)
 // cut_percent is stored per row, so changing the split later never rewrites
-// what Eve was already owed. This file is NOT a security boundary — /api/eve/*
+// what Eve was already owed. This file is NOT a security boundary — /api/eve
 // enforces the login; hiding controls here is only cosmetic.
 // =============================================================
 const {
@@ -143,7 +148,7 @@ function EveAuthGate({ onAuthed }) {
     setError('');
     setChecking(true);
     try {
-      const res = await fetch('/api/eve/login', {
+      const res = await fetch('/api/eve?action=login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password }),
@@ -239,7 +244,7 @@ function EveDealForm({ defaultPercent, defaultCategory, editing, onSaved, onCanc
       note: form.note,
     };
     try {
-      const res = await fetch('/api/eve/commissions', {
+      const res = await fetch('/api/eve?action=commissions', {
         method: editing ? 'PATCH' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(editing ? { id: editing.id, ...payload } : payload),
@@ -360,7 +365,7 @@ function EveDashboard() {
 
   const load = useCallbackEve(async () => {
     try {
-      const res = await fetch('/api/eve/commissions', { headers: { Accept: 'application/json' } });
+      const res = await fetch('/api/eve?action=commissions', { headers: { Accept: 'application/json' } });
       const json = await res.json().catch(() => null);
       if (res.ok && json && json.ok && json.authenticated) {
         setRows(Array.isArray(json.rows) ? json.rows : []);
@@ -412,7 +417,7 @@ function EveDashboard() {
   const togglePaid = async (row) => {
     setBusyId(row.id);
     try {
-      await fetch('/api/eve/commissions', {
+      await fetch('/api/eve?action=commissions', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: row.id, paid: !row.paid }),
@@ -426,7 +431,7 @@ function EveDashboard() {
     if (!window.confirm(`Delete "${row.deal_name}"? This can't be undone.`)) return;
     setBusyId(row.id);
     try {
-      await fetch('/api/eve/commissions', {
+      await fetch('/api/eve?action=commissions', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: row.id }),
@@ -437,7 +442,7 @@ function EveDashboard() {
   };
 
   const logout = async () => {
-    try { await fetch('/api/eve/logout', { method: 'POST' }); } catch (err) { /* ignore */ }
+    try { await fetch('/api/eve?action=logout', { method: 'POST' }); } catch (err) { /* ignore */ }
     window.location.reload();
   };
 
@@ -563,7 +568,7 @@ function EveTrackerPage() {
 
   useEffectEve(() => {
     let live = true;
-    fetch('/api/eve/commissions', { headers: { Accept: 'application/json' } })
+    fetch('/api/eve?action=commissions', { headers: { Accept: 'application/json' } })
       .then(r => r.json())
       .then(json => { if (live) setAuthed(Boolean(json && json.authenticated)); })
       .catch(() => { if (live) setAuthed(false); });

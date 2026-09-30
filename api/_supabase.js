@@ -55,11 +55,17 @@ const enc = encodeURIComponent;
 
 // Columns returned to the browser. Listed explicitly rather than `*` so a
 // future column (an internal flag, say) isn't leaked to dealers by accident.
+//
+// referral_fee_inc_gst is deliberately NOT here. The column still exists on the
+// table, but no money is shown on the dealer board any more, so nothing reads
+// or writes it. Adding it back to this list is what would put it in front of
+// KO Cars again.
 const DEAL_COLUMNS = [
   'id', 'customer_name', 'customer_mobile', 'customer_email',
   'vehicle_year', 'vehicle_make', 'vehicle_model', 'vehicle_variant',
   'vehicle_registration', 'vehicle_stock_number', 'vehicle_price',
-  'status', 'salesperson', 'archived', 'created_at', 'updated_at', 'created_by', 'updated_by',
+  'status', 'salesperson', 'archived', 'settled_at',
+  'created_at', 'updated_at', 'created_by', 'updated_by',
 ].join(',');
 
 const NOTE_COLUMNS = 'id,note,created_at,created_by';
@@ -104,7 +110,9 @@ async function insertDeal(record) {
 }
 
 async function updateDealForDealer(dealId, dealerId, patch) {
-  const path = `deals?id=eq.${enc(dealId)}&dealer_id=eq.${enc(dealerId)}&select=${enc(DEAL_COLUMNS)}`;
+  const path =
+    `deals?id=eq.${enc(dealId)}&dealer_id=eq.${enc(dealerId)}` +
+    `&select=${enc(DEAL_COLUMNS)}`;
   const rows = await sbRequest(path, {
     method: 'PATCH',
     body: patch,

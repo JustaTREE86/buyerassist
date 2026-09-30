@@ -15,6 +15,10 @@
 // The read-only rule is enforced in /api/dealer/*; hiding controls here is
 // only cosmetic. Never treat this file as a security boundary.
 //
+// No money is shown on this board. It tracks stage and progress only: neither
+// the referral fee payable to KO Cars nor Buyer Assist's own commission from
+// the lender appears anywhere on the page.
+//
 // Laid out like a board, not a card wall: one row per deal, grouped by stage,
 // with the vehicle as the first and largest column because KO Cars recognise
 // deals by the car, not the name. Declined / cancelled / unreachable deals
@@ -618,6 +622,231 @@ function DealerDealForm({ deal, statuses, salespeople, onClose, onSaved }) {
   );
 }
 
+// ---- invoice request ----------------------------------------------------
+//
+// "Request invoice" on a deal. Pulls the car off the KO Cars website by stock
+// number, rego, VIN or listing link, lets Josh fill in the buyer's invoice
+// details, and emails KO Cars (Josh cc'd). The buyer's DOB and licence go in
+// the email only: nothing here is saved to the deal except a one-line note.
+
+const DEALER_LICENCE_STATES = ['QLD', 'NSW', 'VIC', 'SA', 'WA', 'TAS', 'NT', 'ACT'];
+
+function dealerInvoiceMessage(deal) {
+  const first = String(deal.customer_name || '').trim().split(/\s+/)[0] || 'the customer';
+  const where = {
+    'Conditional Approval': `Good news, we've got ${first}'s finance conditionally approved so we're ready to get this one moving.`,
+    'Approved': `Good news, ${first}'s finance is approved so we're ready to get this one moving.`,
+    'Settlement Booked': `${first}'s finance is approved and we're booking settlement.`,
+  }[deal.status] || `We're getting ${first}'s finance ready to go.`;
+  return `Hey KO team,\n\nHope you're all going well! ${where}\n\nCan you please put together an invoice made out to the following:`;
+}
+
+function DealerInvoiceRequest({ deal, onClose, onSent }) {
+  const [message, setMessage] = useStateDealer(() => dealerInvoiceMessage(deal));
+  const [buyer, setBuyer] = useStateDealer({
+    name: deal.customer_name || '', address: '', dob: '',
+    licence_no: '', licence_state: 'QLD', licence_expiry: '',
+    mobile: deal.customer_mobile || '', email: deal.customer_email || '',
+  });
+  const [vehicle, setVehicle] = useStateDealer({
+    title: dealerVehicleTitle(deal), stock: deal.vehicle_stock_number || '', vin: '',
+    rego: deal.vehicle_registration || '', colour: '', odometer: '',
+    price: deal.vehicle_price !== null && deal.vehicle_price !== undefined ? `$${formatMoney(deal.vehicle_price)}` : '',
+  });
+  const [finance, setFinance] = useStateDealer({ amount: '', deposit: '', trade_in: '', lender: '' });
+
+  const [lookup, setLookup] = useStateDealer(deal.vehicle_stock_number || deal.vehicle_registration || '');
+  const [lookupState, setLookupState] = useStateDealer({ busy: false, note: '', candidates: [], listing: '' });
+
+  const [busy, setBusy] = useStateDealer(false);
+  const [error, setError] = useStateDealer('');
+  const [fallback, setFallback] = useStateDealer(null);
+
+  const setIn = (setter, k) => (e) => setter((s) => ({ ...s, [k]: e.target.value }));
+
+  const fetchVehicle = useCallbackDealer(async (q) => {
+    setLookupState((s) => ({ ...s, busy: true, note: '', candidates: [] }));
+    const params = new URLSearchParams({
+      action: 'vehicle', q: q || '',
+      year: deal.vehicle_year || '', make: deal.vehicle_make || '', model: deal.vehicle_model || '',
+    });
+    try {
+      const { res, json } = await dealerFetch(`/api/dealer/deals?${params}`);
+      if (res.ok && json && json.ok && json.vehicle) {
+        const v = json.vehicle;
+        setVehicle({
+          title: v.title, stock: v.stock, vin: v.vin, rego: v.rego,
+          colour: v.colour, odometer: v.odometer, price: v.price,
+        });
+        setLookupState({ busy: false, note: 'Filled in from the KO Cars website. Check it before sending.', candidates: [], listing: v.url });
+      } else if (res.ok && json && json.ok) {
+        const found = json.candidates || [];
+        setLookupState({
+          busy: false,
+          note: json.searched
+            ? `Nothing on the KO Cars website matches "${json.searched}". ${found.length ? 'Pick the car below, or fill it in by hand.' : 'Fill it in by hand.'}`
+            : (found.length ? 'Pick the car from KO Cars stock below.' : 'No matching car on the KO Cars website. Fill it in by hand.'),
+          candidates: found,
+          listing: '',
+        });
+      } else {
+        setLookupState({ busy: false, note: (json && json.error) || 'Lookup failed. Fill the vehicle in by hand.', candidates: [], listing: '' });
+      }
+    } catch (err) {
+      setLookupState({ busy: false, note: 'Network error. Fill the vehicle in by hand.', candidates: [], listing: '' });
+    }
+  }, [deal]);
+
+  // Look the car up as soon as the form opens: by stock/rego if the deal has
+  // one, otherwise offer KO Cars stock that matches the deal's make and model.
+  useEffectDealer(() => { fetchVehicle(lookup); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const submit = async (e) => {
+    e.preventDefault();
+    if (busy) return;
+    if (!buyer.name.trim()) return setError('Please enter the buyer’s full legal name.');
+    if (!buyer.address.trim()) return setError('Please enter the buyer’s address.');
+    if (!vehicle.title.trim()) return setError('Please enter the vehicle, or fetch it from the KO Cars website.');
+    setError('');
+    setFallback(null);
+    setBusy(true);
+    try {
+      const { res, json } = await dealerFetch('/api/dealer/deals?action=invoice-request', {
+        method: 'POST',
+        body: JSON.stringify({ id: deal.id, message, buyer, vehicle, finance }),
+      });
+      if (res.ok && json && json.ok) {
+        onSent();
+        return;
+      }
+      setError((json && json.error) || 'The invoice request could not be sent.');
+      if (json && json.fallback) setFallback(json.fallback);
+    } catch (err) {
+      setError('Network error. Nothing was sent, please try again.');
+    }
+    setBusy(false);
+  };
+
+  const field = (id, label, value, onChange, props = {}) => (
+    <div className="bp-field">
+      <label htmlFor={id}>{label}</label>
+      <input id={id} type="text" value={value} onChange={onChange} {...props} />
+    </div>
+  );
+
+  return (
+    <div className="deal-modal-backdrop" role="dialog" aria-modal="true" aria-label="Request invoice from KO Cars">
+      <div className="deal-modal">
+        <div className="deal-modal-head">
+          <h2 className="h3">Request invoice from KO Cars</h2>
+          <button type="button" className="deal-close" onClick={onClose} aria-label="Close">×</button>
+        </div>
+
+        <form onSubmit={submit} className="bp-form" noValidate>
+          <p className="deal-form-legend">Vehicle from the KO Cars website</p>
+          <div className="deal-lookup">
+            <div className="bp-field">
+              <label htmlFor="inv-lookup">Stock number, rego, VIN or listing link</label>
+              <input id="inv-lookup" type="text" value={lookup} onChange={(e) => setLookup(e.target.value)}
+                     onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); fetchVehicle(lookup); } }}
+                     placeholder="445" />
+            </div>
+            <button type="button" className="btn ghost deal-btn-sm" disabled={lookupState.busy}
+                    onClick={() => fetchVehicle(lookup)}>
+              {lookupState.busy ? 'Searching…' : 'Fetch from website'}
+            </button>
+          </div>
+          {lookupState.busy && <p className="deal-hint">Reading the KO Cars website…</p>}
+          {lookupState.note && (
+            <p className="deal-hint" aria-live="polite">
+              {lookupState.note}
+              {lookupState.listing && <> <a href={lookupState.listing} target="_blank" rel="noopener noreferrer">View listing</a></>}
+            </p>
+          )}
+          {lookupState.candidates.length > 0 && (
+            <ul className="deal-candidates">
+              {lookupState.candidates.map((c) => (
+                <li key={c.url}>
+                  <button type="button" className="deal-candidate" onClick={() => { setLookup(c.url); fetchVehicle(c.url); }}>
+                    <span>{c.title}</span><span className="deal-candidate-price">{c.price}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {field('inv-v-title', 'Vehicle *', vehicle.title, setIn(setVehicle, 'title'))}
+          <div className="bp-row">
+            {field('inv-v-stock', 'Stock #', vehicle.stock, setIn(setVehicle, 'stock'))}
+            {field('inv-v-rego', 'Rego', vehicle.rego, setIn(setVehicle, 'rego'))}
+          </div>
+          <div className="bp-row">
+            {field('inv-v-vin', 'VIN', vehicle.vin, setIn(setVehicle, 'vin'))}
+            {field('inv-v-colour', 'Colour', vehicle.colour, setIn(setVehicle, 'colour'))}
+          </div>
+          <div className="bp-row">
+            {field('inv-v-odo', 'Odometer (km)', vehicle.odometer, setIn(setVehicle, 'odometer'))}
+            {field('inv-v-price', 'Price', vehicle.price, setIn(setVehicle, 'price'))}
+          </div>
+
+          <p className="deal-form-legend">Invoice &amp; delivery to</p>
+          {field('inv-b-name', 'Full legal name *', buyer.name, setIn(setBuyer, 'name'), { autoComplete: 'off' })}
+          {field('inv-b-address', 'Address *', buyer.address, setIn(setBuyer, 'address'), { autoComplete: 'off', placeholder: '14 Example Court, Logan Central QLD 4114' })}
+          <div className="bp-row">
+            {field('inv-b-dob', 'Date of birth', buyer.dob, setIn(setBuyer, 'dob'), { autoComplete: 'off', placeholder: 'DD/MM/YYYY' })}
+            {field('inv-b-lic-exp', 'Licence expiry', buyer.licence_expiry, setIn(setBuyer, 'licence_expiry'), { autoComplete: 'off', placeholder: 'DD/MM/YYYY' })}
+          </div>
+          <div className="bp-row">
+            {field('inv-b-lic', 'Driver’s licence no.', buyer.licence_no, setIn(setBuyer, 'licence_no'), { autoComplete: 'off' })}
+            <div className="bp-field">
+              <label htmlFor="inv-b-lic-state">Licence state</label>
+              <select id="inv-b-lic-state" className="cr-select" value={buyer.licence_state} onChange={setIn(setBuyer, 'licence_state')}>
+                {DEALER_LICENCE_STATES.map((s) => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </div>
+          </div>
+          <div className="bp-row">
+            {field('inv-b-mobile', 'Mobile', buyer.mobile, setIn(setBuyer, 'mobile'), { type: 'tel' })}
+            {field('inv-b-email', 'Email', buyer.email, setIn(setBuyer, 'email'), { type: 'email' })}
+          </div>
+
+          <p className="deal-form-legend">Finance</p>
+          <div className="bp-row">
+            {field('inv-f-amount', 'Finance amount', finance.amount, setIn(setFinance, 'amount'), { placeholder: '$20,140.00' })}
+            {field('inv-f-deposit', 'Deposit', finance.deposit, setIn(setFinance, 'deposit'))}
+          </div>
+          <div className="bp-row">
+            {field('inv-f-trade', 'Trade-in', finance.trade_in, setIn(setFinance, 'trade_in'))}
+            {field('inv-f-lender', 'Lender', finance.lender, setIn(setFinance, 'lender'))}
+          </div>
+
+          <p className="deal-form-legend">Message</p>
+          <div className="bp-field">
+            <label htmlFor="inv-message">Opens the email</label>
+            <textarea id="inv-message" rows={6} value={message} onChange={(e) => setMessage(e.target.value)} />
+          </div>
+          <p className="deal-hint">Goes to ko-cars@hotmail.com with you cc’d. Replies come to you. DOB and licence are not saved on the tracker.</p>
+
+          {error && <p role="alert" className="deal-error">{error}</p>}
+          {fallback && (
+            <div className="bp-field">
+              <label htmlFor="inv-fallback">To: {fallback.to} · Subject: {fallback.subject}</label>
+              <textarea id="inv-fallback" rows={10} readOnly value={fallback.text} onFocus={(e) => e.target.select()} />
+            </div>
+          )}
+
+          <div className="deal-form-actions">
+            <button type="button" className="btn ghost" onClick={onClose}>Cancel</button>
+            <button type="submit" className="btn primary" disabled={busy} style={{ opacity: busy ? 0.6 : 1 }}>
+              {busy ? 'Sending…' : 'Send to KO Cars'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 // ---- one board row ------------------------------------------------------
 //
 // Renders as two <tr>s: the row itself, and the detail panel underneath it
@@ -625,7 +854,7 @@ function DealerDealForm({ deal, statuses, salespeople, onClose, onSaved }) {
 // is deliberately not a click target, so the phone and email links inside it
 // stay ordinary links.
 
-function DealerDealRow({ deal, canEdit, statuses, open, onToggle, onChanged, onEdit }) {
+function DealerDealRow({ deal, canEdit, statuses, open, onToggle, onChanged, onEdit, onInvoice }) {
   const [noteText, setNoteText] = useStateDealer('');
   const [busy, setBusy] = useStateDealer(false);
   const [error, setError] = useStateDealer('');
@@ -660,17 +889,25 @@ function DealerDealRow({ deal, canEdit, statuses, open, onToggle, onChanged, onE
   const patchDeal = async (patch) => {
     setBusy(true);
     setError('');
+    let ok = false;
     try {
       const { res, json } = await dealerFetch('/api/dealer/deals', {
         method: 'PATCH',
         body: JSON.stringify({ id: deal.id, ...patch }),
       });
-      if (res.ok && json && json.ok) onChanged();
+      if (res.ok && json && json.ok) {
+        ok = true;
+        onChanged();
+        // The stage saved but KO Cars were not told. Say so, loudly enough
+        // that Josh can ring them instead.
+        if (json.emailed === false) setError('Stage saved, but the email to KO Cars did not send. Let them know directly.');
+      }
       else setError((json && json.error) || 'That change could not be saved.');
     } catch (err) {
       setError('Network error. Please try again.');
     }
     setBusy(false);
+    return ok;
   };
 
   return (
@@ -743,6 +980,9 @@ function DealerDealRow({ deal, canEdit, statuses, open, onToggle, onChanged, onE
                   </p>
                 )}
                 <p className="deal-updated">Last updated: {dealerDateTime(deal.updated_at, ' at ')}</p>
+                {deal.settled_at && (
+                  <p className="deal-updated">Settled: {dealerDateTime(deal.settled_at, ' at ')}</p>
+                )}
                 {deal.salesperson && <p className="deal-updated">Salesperson: {deal.salesperson}</p>}
                 {deal.vehicle_stock_number && <p className="deal-updated">Stock #: {deal.vehicle_stock_number}</p>}
               </div>
@@ -780,6 +1020,7 @@ function DealerDealRow({ deal, canEdit, statuses, open, onToggle, onChanged, onE
                   </form>
 
                   <div className="deal-staff-row">
+                    <button type="button" className="btn primary deal-btn-sm" onClick={() => onInvoice(deal)}>Request invoice</button>
                     <button type="button" className="btn ghost deal-btn-sm" onClick={() => onEdit(deal)}>Edit deal</button>
                     <button type="button" className="btn ghost deal-btn-sm" disabled={busy}
                             onClick={() => patchDeal({ archived: !deal.archived })}>
@@ -871,6 +1112,7 @@ function DealerKoCarsPage() {
   const [collapsed, setCollapsed] = useStateDealer(() => new Set()); // collapsed stage groups
   const [openIds, setOpenIds] = useStateDealer(() => new Set()); // expanded rows
   const [formFor, setFormFor] = useStateDealer(null); // null | 'new' | deal
+  const [invoiceFor, setInvoiceFor] = useStateDealer(null); // null | deal
 
   const showArchived = view === 'archived';
 
@@ -891,7 +1133,7 @@ function DealerKoCarsPage() {
   }, []);
 
   // Auto-refresh must not yank data out from under an open form.
-  const formOpen = formFor !== null;
+  const formOpen = formFor !== null || invoiceFor !== null;
   const formOpenRef = useRefDealer(formOpen);
   formOpenRef.current = formOpen;
 
@@ -1033,7 +1275,7 @@ function DealerKoCarsPage() {
             <p className="deal-signed-in">
               {session.name}
               <span className="deal-role">
-                {canEdit ? 'Buyer Assist staff' : 'KO Cars, view only'}
+                  {canEdit ? (session.salesperson ? 'KO Cars admin' : 'Buyer Assist staff') : 'KO Cars, view only'}
               </span>
             </p>
             <button type="button" className="btn ghost deal-btn-sm" onClick={signOut}>Sign out</button>
@@ -1119,14 +1361,23 @@ function DealerKoCarsPage() {
                               collapsed={collapsed.has(g.status)} onToggleGroup={toggleGroup}
                               openIds={openIds} onToggleRow={toggleRow}
                               canEdit={canEdit} statuses={statuses}
-                              onChanged={refresh} onEdit={(deal) => setFormFor(deal)} />
+                              onChanged={refresh} onEdit={(deal) => setFormFor(deal)}
+                              onInvoice={(deal) => setInvoiceFor(deal)} />
           ))}
         </div>
       )}
 
       <DealerPrivacyNotice />
 
-      {formOpen && canEdit && (
+      {invoiceFor && canEdit && (
+        <DealerInvoiceRequest
+          deal={invoiceFor}
+          onClose={() => setInvoiceFor(null)}
+          onSent={() => { setInvoiceFor(null); refresh(); }}
+        />
+      )}
+
+      {formFor !== null && canEdit && (
         <DealerDealForm
           deal={formFor === 'new' ? null : formFor}
           statuses={statuses}

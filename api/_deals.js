@@ -26,6 +26,10 @@ const DEAL_STATUSES = [
   'Cancelled',
 ];
 
+// The stage that stamps settled_at. Named rather than written out at each use
+// so the bookkeeping in api/dealer/deals.js can never drift from the list above.
+const SETTLED_STATUS = 'Settled';
+
 const MAX = {
   customer_name: 120,
   customer_mobile: 30,
@@ -137,4 +141,64 @@ function validateNote(text) {
   return { errors: [], note };
 }
 
-module.exports = { DEAL_STATUSES, MAX, clean, optional, validateDealInput, validateNote };
+// The invoice request KO Cars get from the deal's "Request invoice" button.
+// Everything is display text for one email, never stored, so it is capped and
+// cleaned rather than typed. Name, address and vehicle are the minimum KO Cars
+// need to raise an invoice; the rest is sent when Josh has it.
+function validateInvoiceRequest(input) {
+  const body = input && typeof input === 'object' ? input : {};
+  const b = body.buyer && typeof body.buyer === 'object' ? body.buyer : {};
+  const v = body.vehicle && typeof body.vehicle === 'object' ? body.vehicle : {};
+  const f = body.finance && typeof body.finance === 'object' ? body.finance : {};
+  const s = (obj, k, max = 120) => clean(obj[k], max);
+
+  // clean() flattens newlines; the message keeps its paragraphs.
+  const message = String(body.message == null ? '' : body.message)
+    .replace(/\r\n?/g, '\n')
+    .replace(/[\u0000-\u0009\u000B-\u001F\u007F]/g, ' ')
+    .trim()
+    .slice(0, 2000);
+
+  const request = {
+    message,
+    buyer: {
+      name: s(b, 'name', MAX.customer_name),
+      address: s(b, 'address', 250),
+      dob: s(b, 'dob', 20),
+      licence_no: s(b, 'licence_no', 30),
+      licence_state: s(b, 'licence_state', 10),
+      licence_expiry: s(b, 'licence_expiry', 20),
+      mobile: s(b, 'mobile', MAX.customer_mobile),
+      email: s(b, 'email', MAX.customer_email),
+    },
+    vehicle: {
+      title: s(v, 'title', 200),
+      stock: s(v, 'stock', MAX.vehicle_stock_number),
+      vin: s(v, 'vin', 30),
+      rego: s(v, 'rego', MAX.vehicle_registration),
+      colour: s(v, 'colour', 40),
+      odometer: s(v, 'odometer', 20),
+      price: s(v, 'price', 40),
+    },
+    finance: {
+      amount: s(f, 'amount', 40),
+      deposit: s(f, 'deposit', 40),
+      trade_in: s(f, 'trade_in', 120),
+      lender: s(f, 'lender', 80),
+    },
+  };
+
+  const errors = [];
+  if (!request.message) errors.push('Write a short message to KO Cars.');
+  if (!request.buyer.name) errors.push('Enter the buyer’s full legal name.');
+  if (!request.buyer.address) errors.push('Enter the buyer’s address.');
+  if (!request.vehicle.title) errors.push('Enter the vehicle, or fetch it from the KO Cars website.');
+  if (request.buyer.email && !isValidEmail(request.buyer.email)) errors.push('Enter a valid buyer email address.');
+
+  return { errors, request };
+}
+
+module.exports = {
+  DEAL_STATUSES, SETTLED_STATUS, MAX,
+  clean, optional, validateDealInput, validateNote, validateInvoiceRequest,
+};

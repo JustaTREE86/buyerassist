@@ -7,3 +7,5 @@ Disallow: /autozone-apply
 Disallow: /apply/josh
 Disallow: /autozone-staff
 Disallow: /ko-apply
+Disallow: /portal/
+Disallow: /portal-demo

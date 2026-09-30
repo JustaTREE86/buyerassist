@@ -2,7 +2,13 @@
 //
 //   GET   list the signed-in dealer's deals (staff and dealer users)
 //   POST  create a deal            (staff only)
-//   PATCH edit / restage / archive (staff only)
+//   PATCH edit / restage / archive (staff only). A stage change emails KO Cars.
+//
+//   GET  ?action=vehicle           look a car up on the KO Cars website (staff)
+//   POST ?action=invoice-request   email KO Cars an invoice request (staff)
+//
+// The two actions live here rather than in their own files because the
+// project is at 11 of Vercel Hobby's 12 functions (see README).
 //
 // Security notes:
 //  - The dealer scope always comes from the signed session cookie, never from
@@ -10,11 +16,13 @@
 //    different id, so there is no endpoint here that returns "all deals".
 //  - Every login for a dealer sees that dealer's whole board. session.salesperson
 //    names who is signed in (for notes and the header); it is deliberately not
-//    a filter, so Alan and Charlie see the same deals.
+//    a filter, so Alan, Charlie and Jacob see the same deals.
 //  - Writes go through requireStaff, so a dealer session is read-only on the
 //    server. Hiding the buttons in the UI is only cosmetic.
 const { requireSession, requireStaff } = require('../_session');
-const { validateDealInput, clean } = require('../_deals');
+const { validateDealInput, validateInvoiceRequest, clean, SETTLED_STATUS } = require('../_deals');
+const { KO_TO, sendEmail, buildStageChangeEmail, buildInvoiceRequestEmail } = require('../_dealer-email');
+const { lookupVehicle } = require('../_ko-vehicle');
 const {
   getDealerBySlug,
   listDealsForDealer,
@@ -26,9 +34,11 @@ const {
 
 async function handleGet(req, res, session, dealer) {
   const archived = String((req.query && req.query.archived) || 'false') === 'true';
-  // Whole board, every time. Staff and dealer logins get the same list — the
+
+  // Whole board, every time. Staff and dealer logins get the same list; the
   // only difference between them is that a dealer session cannot write.
   const deals = await listDealsForDealer(dealer.id, { archived });
+
   return res.status(200).json({
     ok: true,
     deals,
@@ -46,6 +56,9 @@ async function handlePost(req, res, session, dealer) {
   const deal = await insertDeal({
     ...record,
     dealer_id: dealer.id,
+    // Rare, but a deal can be entered after the fact at its final stage. Stamp
+    // it now so it lands in this month's total like any other settlement.
+    settled_at: record.status === SETTLED_STATUS ? new Date().toISOString() : null,
     created_by: session.name,
     updated_by: session.name,
   });
@@ -103,19 +116,98 @@ async function handlePatch(req, res, session, dealer) {
     }
   }
 
+  // settled_at is bookkeeping, never something the client sends. Stamped on the
+  // move into Settled and cleared on the way back out, so a deal marked settled
+  // by mistake and corrected the next day leaves the month's total cleanly.
+  // Re-saving a deal that was already settled does not restamp it — the date it
+  // settled does not change because someone fixed a typo in the rego.
+  if (statusChange) {
+    if (statusChange.to === SETTLED_STATUS) patch.settled_at = new Date().toISOString();
+    else if (statusChange.from === SETTLED_STATUS) patch.settled_at = null;
+  }
+
   const deal = await updateDealForDealer(id, dealer.id, patch);
   if (!deal) return res.status(404).json({ ok: false, error: 'Deal not found.' });
+
+  // KO Cars hear about every stage move by email. The stage is already saved
+  // by this point; a failed email is logged on the deal and reported to the
+  // UI, never allowed to roll the change back.
+  let emailed = null;
+  if (statusChange) {
+    try {
+      await sendEmail(buildStageChangeEmail({
+        deal, from: statusChange.from, to: statusChange.to, changedBy: session.name,
+      }));
+      emailed = true;
+    } catch (err) {
+      console.error('dealer/deals: stage email failed: ' + err.message);
+      emailed = false;
+    }
+  }
 
   // Stage moves and archiving are logged to the history automatically, so the
   // activity trail explains itself without staff having to write it out.
   if (statusChange) {
-    await insertNote(id, `Stage changed from "${statusChange.from}" to "${statusChange.to}".`, session.name);
+    const emailNote = emailed ? ` KO Cars emailed (${KO_TO}).` : ' Email to KO Cars FAILED to send.';
+    await insertNote(id, `Stage changed from "${statusChange.from}" to "${statusChange.to}".${emailNote}`, session.name);
   }
   if (typeof body.archived === 'boolean' && body.archived !== existing.archived) {
     await insertNote(id, body.archived ? 'Deal archived.' : 'Deal restored to the active list.', session.name);
   }
 
-  return res.status(200).json({ ok: true, deal });
+  return res.status(200).json({ ok: true, deal, emailed });
+}
+
+// GET ?action=vehicle&q=<stock|rego|VIN|listing link>&year=&make=&model=
+async function handleVehicleLookup(req, res) {
+  const q = clean(req.query && req.query.q, 300);
+  const hint = {
+    year: clean(req.query && req.query.year, 4),
+    make: clean(req.query && req.query.make, 60),
+    model: clean(req.query && req.query.model, 60),
+  };
+  try {
+    const result = await lookupVehicle(q, hint);
+    return res.status(200).json({ ok: true, ...result });
+  } catch (err) {
+    console.error('dealer/deals: vehicle lookup failed: ' + err.message);
+    return res.status(502).json({
+      ok: false,
+      error: 'Could not reach the KO Cars website. Fill the vehicle in by hand.',
+    });
+  }
+}
+
+// POST ?action=invoice-request  { id, message, buyer, vehicle, finance }
+async function handleInvoiceRequest(req, res, session, dealer) {
+  const body = req.body || {};
+  const id = clean(body.id, 64);
+  if (!id) return res.status(400).json({ ok: false, error: 'Missing deal id.' });
+
+  const deal = await getDealForDealer(id, dealer.id);
+  if (!deal) return res.status(404).json({ ok: false, error: 'Deal not found.' });
+
+  const { errors, request } = validateInvoiceRequest(body);
+  if (errors.length) return res.status(400).json({ ok: false, error: errors[0], errors });
+
+  const email = buildInvoiceRequestEmail(request);
+  try {
+    await sendEmail(email);
+  } catch (err) {
+    console.error('dealer/deals: invoice request email failed: ' + err.message);
+    // Hand the text back so Josh can paste it into Outlook instead.
+    return res.status(502).json({
+      ok: false,
+      error: 'The email did not send. Copy the text below into Outlook instead.',
+      fallback: { to: email.to, subject: email.subject, text: email.text },
+    });
+  }
+
+  // No buyer PII in the note: DOB and licence stay in the email only.
+  await insertNote(id, `Invoice request emailed to KO Cars (${KO_TO}) for ${request.vehicle.title}.`, session.name);
+  await updateDealForDealer(id, dealer.id, { updated_by: session.name });
+
+  return res.status(200).json({ ok: true });
 }
 
 module.exports = async function handler(req, res) {
@@ -130,12 +222,28 @@ module.exports = async function handler(req, res) {
     return res.status(405).json({ ok: false, error: 'Method not allowed.' });
   }
 
-  const session = isWrite ? requireStaff(req, res) : requireSession(req, res);
+  const action = String((req.query && req.query.action) || '');
+
+  // Both actions are staff only, including the GET: the vehicle lookup makes
+  // outbound requests and a dealer login has no use for it.
+  const staffOnly = isWrite || action === 'vehicle';
+  const session = staffOnly ? requireStaff(req, res) : requireSession(req, res);
   if (!session) return; // guard already sent 401/403
+
+  if (action === 'vehicle') {
+    if (method !== 'GET') return res.status(405).json({ ok: false, error: 'Method not allowed.' });
+    return handleVehicleLookup(req, res);
+  }
 
   try {
     const dealer = await getDealerBySlug(session.dealerSlug);
     if (!dealer) return res.status(404).json({ ok: false, error: 'Dealer not found.' });
+
+    if (action === 'invoice-request') {
+      if (method !== 'POST') return res.status(405).json({ ok: false, error: 'Method not allowed.' });
+      return await handleInvoiceRequest(req, res, session, dealer);
+    }
+    if (action) return res.status(400).json({ ok: false, error: 'Unknown action.' });
 
     if (method === 'GET') return await handleGet(req, res, session, dealer);
     if (method === 'POST') return await handlePost(req, res, session, dealer);

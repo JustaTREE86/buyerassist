@@ -2,7 +2,7 @@
 //
 // Two roles share one form. The password decides which:
 //   BUYER_ASSIST_STAFF_PASSWORD -> staff  (read/write, sees every dealer)
-//   a roster password           -> dealer (read-only, pinned to that dealer
+//   a roster password           -> configured role (read-only by default), pinned to that dealer
 //                                  AND to the one salesperson the password
 //                                  belongs to — see _dealer-config.js)
 //
@@ -54,7 +54,10 @@ function resolveLogin(password, slug) {
   }
 
   if (staffHit) return { role: ROLE_STAFF, salesperson: null };
-  if (dealerHit) return { role: ROLE_DEALER, salesperson: dealerHit.salesperson };
+  if (dealerHit) return {
+    role: dealerHit.role === ROLE_STAFF ? ROLE_STAFF : ROLE_DEALER,
+    salesperson: dealerHit.salesperson,
+  };
   return null;
 }
 
