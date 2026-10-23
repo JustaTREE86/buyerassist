@@ -133,9 +133,8 @@ async function insertNote(dealId, note, author) {
 }
 
 module.exports = {
-  // Low-level REST access, reused by the Eve commission tracker (api/_eve.js).
-  // Callers that touch dealer data must still scope every query by dealer_id;
-  // eve_commissions has no such scope because it is single-owner (Josh only).
+  // Low-level REST access, reused by the partner portal (api/_portal-db.js).
+  // Callers that touch dealer data must still scope every query by dealer_id.
   sbRequest,
   enc,
   isConfigured,

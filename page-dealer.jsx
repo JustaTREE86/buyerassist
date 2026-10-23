@@ -11,7 +11,8 @@
 //   dealer — a KO Cars salesperson. Read-only, but sees the whole board. Each
 //            salesperson has their own password (see api/_dealer-config.js)
 //            purely so notes and the header name the right person — it does
-//            not narrow what they can see.
+//            not narrow what they can see. A roster row with canWrite
+//            (Jacob) gets the same edit controls as staff on this board.
 // The read-only rule is enforced in /api/dealer/*; hiding controls here is
 // only cosmetic. Never treat this file as a security boundary.
 //
@@ -1260,7 +1261,7 @@ function DealerKoCarsPage() {
     );
   }
 
-  const canEdit = session.role === 'staff';
+  const canEdit = typeof session.canEdit === 'boolean' ? session.canEdit : session.role === 'staff';
   const refresh = () => loadDeals(showArchived).catch(() => {});
 
   return (
@@ -1275,7 +1276,7 @@ function DealerKoCarsPage() {
             <p className="deal-signed-in">
               {session.name}
               <span className="deal-role">
-                  {canEdit ? (session.salesperson ? 'KO Cars admin' : 'Buyer Assist staff') : 'KO Cars, view only'}
+                {session.role === 'staff' ? 'Buyer Assist staff' : (canEdit ? 'KO Cars' : 'KO Cars, view only')}
               </span>
             </p>
             <button type="button" className="btn ghost deal-btn-sm" onClick={signOut}>Sign out</button>

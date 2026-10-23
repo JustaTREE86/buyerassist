@@ -10,6 +10,7 @@
 // The passwords themselves live only in env vars and only ever travel from
 // the browser to /api/dealer/login — they are never part of the frontend.
 const crypto = require('crypto');
+const { salespersonCanWrite } = require('./_dealer-config');
 
 const COOKIE_NAME = 'ba_dealer_session';
 const SESSION_TTL_MS = 12 * 60 * 60 * 1000; // 12 hours, then re-login.
@@ -136,12 +137,21 @@ function requireSession(req, res) {
   return session;
 }
 
+// Staff can always write. A dealer login can write only if its roster row in
+// _dealer-config.js has canWrite, and only ever on its own dealer's board
+// (every handler scopes by session.dealerSlug).
+function canWrite(session) {
+  if (!session) return false;
+  if (session.role === ROLE_STAFF) return true;
+  return salespersonCanWrite(session.dealerSlug, session.salesperson);
+}
+
 function requireStaff(req, res) {
   const session = requireSession(req, res);
   if (!session) return null;
-  if (session.role !== ROLE_STAFF) {
-    // Dealer users are read-only. This is the server-side half of that rule —
-    // hiding the buttons in the UI is only cosmetic.
+  if (!canWrite(session)) {
+    // Dealer users are read-only unless the roster says otherwise. This is the
+    // server-side half of that rule — hiding the buttons in the UI is only cosmetic.
     res.status(403).json({ ok: false, error: 'Your account has view-only access.' });
     return null;
   }
@@ -160,5 +170,6 @@ module.exports = {
   readSession,
   requireSession,
   requireStaff,
+  canWrite,
   timingSafeEqualStr,
 };

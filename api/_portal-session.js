@@ -7,7 +7,7 @@
 //
 // Deliberately its own cookie, separate from ba_dealer_session, so a KO Cars
 // login can never reach a portal board and vice versa. The signing secret is
-// shared (DEALER_SESSION_SECRET, same as the Eve tracker), so the payload
+// shared (DEALER_SESSION_SECRET), so the payload
 // also carries a surface marker that is checked on the way back in — a token
 // minted for one surface is rejected by the other even though the signature
 // verifies.

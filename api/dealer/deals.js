@@ -18,7 +18,8 @@
 //    names who is signed in (for notes and the header); it is deliberately not
 //    a filter, so Alan, Charlie and Jacob see the same deals.
 //  - Writes go through requireStaff, so a dealer session is read-only on the
-//    server. Hiding the buttons in the UI is only cosmetic.
+//    server unless its roster row has canWrite (Jacob). Hiding the buttons in
+//    the UI is only cosmetic.
 const { requireSession, requireStaff } = require('../_session');
 const { validateDealInput, validateInvoiceRequest, clean, SETTLED_STATUS } = require('../_deals');
 const { KO_TO, sendEmail, buildStageChangeEmail, buildInvoiceRequestEmail } = require('../_dealer-email');

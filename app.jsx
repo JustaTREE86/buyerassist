@@ -94,9 +94,6 @@ const ROUTES = [
   // Hidden dealer dashboards. Listed here so the URL resolves on a hard
   // refresh — deliberately not linked from Nav, the footer or the sitemap.
   { id: 'dealer-ko-cars', path: '/dealer/ko-cars' },
-  // Josh's private commission tracker for Eve's cut — password-gated, not
-  // linked from Nav, the footer or the sitemap.
-  { id: 'eve', path: '/eve' },
   // Josh's personal AFOS quick-quote link, sent directly to his own clients —
   // not linked from Nav, the footer or the sitemap.
   { id: 'autozone-apply', path: '/autozone-apply' },
@@ -140,7 +137,6 @@ const TITLES = {
   apply: 'Apply — The Buyer Assist Group',
   broker: 'Our Team — The Buyer Assist Group',
   'dealer-ko-cars': 'KO Cars Deal Tracker — The Buyer Assist Group',
-  eve: 'Eve Split — The Buyer Assist Group',
   'autozone-apply': 'Quick Quote — The Buyer Assist Group',
   'apply-josh': 'Apply with Josh — The Buyer Assist Group',
   'autozone-staff': 'AutoZone Staff Ad Copy — The Buyer Assist Group',
@@ -166,7 +162,6 @@ function parsePath(pathname) {
   const clean = pathname.replace(/\/+$/, '') || '/';
   if (clean === '/staff/debt-busters') return { page: 'staff-debt-busters', state: {} };
   if (clean === '/dealer/ko-cars') return { page: 'dealer-ko-cars', state: {} };
-  if (clean === '/eve') return { page: 'eve', state: {} };
   if (clean.startsWith('/team/')) return { page: 'broker', state: { id: clean.slice('/team/'.length) } };
   // /portal/:slug — matched before the exact-path lookup below. The demo
   // routes are unaffected: "/portal-demo" and "/portal-demo/ready-finance"
@@ -480,12 +475,6 @@ function App() {
   // that could link back out to the marketing site.
   if (page === 'dealer-ko-cars') {
     return <DealerKoCarsPage/>;
-  }
-
-  // Josh's private commission tracker for Eve's cut — same isolation: no nav,
-  // footer, floating buttons or tweaks panel, and no public chrome.
-  if (page === 'eve') {
-    return <EveTrackerPage/>;
   }
 
   // Josh's personal quick-quote embed — same isolation: nothing that leads

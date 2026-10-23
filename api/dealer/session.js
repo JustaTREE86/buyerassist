@@ -7,7 +7,7 @@
 //
 // It also serves DEAL_STATUSES so the browser never keeps its own copy of the
 // stage list that could drift from the server and the database CHECK.
-const { readSession, ROLE_STAFF } = require('../_session');
+const { readSession, canWrite } = require('../_session');
 const { DEAL_STATUSES } = require('../_deals');
 const { getDealerBySlug } = require('../_supabase');
 const { salespeopleFor } = require('../_dealer-config');
@@ -55,7 +55,7 @@ module.exports = async function handler(req, res) {
       dealerSlug: session.dealerSlug,
       dealerName,
       salesperson: session.salesperson || null,
-      canEdit: session.role === ROLE_STAFF,
+      canEdit: canWrite(session),
       expiresAt: session.exp,
     },
   });

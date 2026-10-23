@@ -2,9 +2,10 @@
 //
 // Two roles share one form. The password decides which:
 //   BUYER_ASSIST_STAFF_PASSWORD -> staff  (read/write, sees every dealer)
-//   a roster password           -> configured role (read-only by default), pinned to that dealer
-//                                  AND to the one salesperson the password
-//                                  belongs to — see _dealer-config.js)
+//   a roster password           -> dealer (pinned to that dealer AND to the
+//                                  one salesperson the password belongs to;
+//                                  read-only unless the roster row has
+//                                  canWrite — see _dealer-config.js)
 //
 // Passwords exist only as env vars on the server. They are never sent to the
 // browser and never stored in the database — the browser only ever posts one
@@ -53,11 +54,8 @@ function resolveLogin(password, slug) {
     if (hit) dealerHit = login;
   }
 
-  if (staffHit) return { role: ROLE_STAFF, salesperson: null };
-  if (dealerHit) return {
-    role: dealerHit.role === ROLE_STAFF ? ROLE_STAFF : ROLE_DEALER,
-    salesperson: dealerHit.salesperson,
-  };
+  if (staffHit) return { role: ROLE_STAFF, salesperson: null, canWrite: true };
+  if (dealerHit) return { role: ROLE_DEALER, salesperson: dealerHit.salesperson, canWrite: dealerHit.canWrite === true };
   return null;
 }
 
@@ -110,7 +108,7 @@ module.exports = async function handler(req, res) {
   // For a scoped dealer login, identity comes from the password, not from
   // whatever the browser typed into "your name" — that field only matters
   // for staff, who share one password between several people.
-  const { role, salesperson } = login;
+  const { role, salesperson, canWrite } = login;
   const displayName = salesperson || name;
 
   try {
@@ -122,7 +120,7 @@ module.exports = async function handler(req, res) {
     setSessionCookie(res, { role, dealerSlug: slug, name: displayName, salesperson });
     return res.status(200).json({
       ok: true,
-      session: { role, name: displayName, dealerSlug: slug, dealerName: dealer.name, salesperson },
+      session: { role, name: displayName, dealerSlug: slug, dealerName: dealer.name, salesperson, canEdit: canWrite },
     });
   } catch (err) {
     console.error('dealer/login: ' + err.message);
