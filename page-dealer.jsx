@@ -146,6 +146,25 @@ async function dealerFetch(url, options) {
 
 // ---- small presentational pieces ---------------------------------------
 
+// Which Buyer Assist broker is on the deal. A solid, filled badge in its own
+// colour per broker so KO Cars can see at a glance who to call. The name is
+// always written out; colour is the second signal. Deals saved before the
+// broker field existed read as the default (Josh).
+const DEALER_BROKER_DEFAULT = 'Josh';
+function dealerBrokerOf(deal) {
+  return (deal && deal.broker) || DEALER_BROKER_DEFAULT;
+}
+function dealerBrokerTone(name) {
+  return String(name || DEALER_BROKER_DEFAULT).toLowerCase().replace(/[^a-z]/g, '');
+}
+function DealerBrokerBadge({ broker }) {
+  return (
+    <span className={`broker-badge broker-${dealerBrokerTone(broker)}`}>
+      <span className="broker-badge-label">Broker</span> {broker}
+    </span>
+  );
+}
+
 function DealerStatusBadge({ status, large }) {
   const tone = DEALER_STATUS_TONE[status] || 'new';
   return (
@@ -223,7 +242,7 @@ const DEALER_EMPTY_FORM = {
   customer_name: '', customer_mobile: '', customer_email: '',
   vehicle_year: '', vehicle_make: '', vehicle_model: '', vehicle_variant: '',
   vehicle_registration: '', vehicle_stock_number: '', vehicle_price: '',
-  status: 'New Referral', salesperson: '', initial_note: '',
+  status: 'New Referral', salesperson: '', broker: '', initial_note: '',
 };
 
 // ---- quick entry --------------------------------------------------------
@@ -381,7 +400,7 @@ function dealerVehicleFromFields(f) {
     .filter(Boolean).join(' ').trim();
 }
 
-function DealerDealForm({ deal, statuses, salespeople, onClose, onSaved }) {
+function DealerDealForm({ deal, statuses, salespeople, brokers, onClose, onSaved }) {
   const editing = Boolean(deal);
   const [f, setF] = useStateDealer(() => {
     if (!deal) return DEALER_EMPTY_FORM;
@@ -392,6 +411,7 @@ function DealerDealForm({ deal, statuses, salespeople, onClose, onSaved }) {
         return acc;
       }, {}),
       status: deal.status,
+      broker: dealerBrokerOf(deal),
     };
   });
   const [error, setError] = useStateDealer('');
@@ -589,6 +609,16 @@ function DealerDealForm({ deal, statuses, salespeople, onClose, onSaved }) {
               <label htmlFor="d-note">Initial note</label>
               <textarea id="d-note" rows={3} value={f.initial_note} onChange={set('initial_note')}
                         placeholder="Referral received from KO Cars. Calling the customer today." />
+            </div>
+          )}
+
+          {brokers.length > 0 && (
+            <div className="bp-field">
+              <label htmlFor="d-broker">Broker</label>
+              <select id="d-broker" className="cr-select" value={f.broker || DEALER_BROKER_DEFAULT} onChange={set('broker')}>
+                {brokers.map((b) => <option key={b} value={b}>{b}</option>)}
+              </select>
+              <p className="deal-hint">Which Buyer Assist broker is running this deal. Shown as a coloured badge on the board.</p>
             </div>
           )}
 
@@ -855,7 +885,7 @@ function DealerInvoiceRequest({ deal, onClose, onSent }) {
 // is deliberately not a click target, so the phone and email links inside it
 // stay ordinary links.
 
-function DealerDealRow({ deal, canEdit, statuses, open, onToggle, onChanged, onEdit, onInvoice }) {
+function DealerDealRow({ deal, canEdit, statuses, brokers, open, onToggle, onChanged, onEdit, onInvoice }) {
   const [noteText, setNoteText] = useStateDealer('');
   const [busy, setBusy] = useStateDealer(false);
   const [error, setError] = useStateDealer('');
@@ -930,6 +960,19 @@ function DealerDealRow({ deal, canEdit, statuses, open, onToggle, onChanged, onE
           </span>
         </td>
 
+        <td className="board-cell board-cell-broker" data-label="Broker">
+          {canEdit && brokers.length > 0 ? (
+            <select className={`broker-select broker-${dealerBrokerTone(dealerBrokerOf(deal))}`}
+                    value={dealerBrokerOf(deal)} disabled={busy}
+                    aria-label={`Broker for ${title || deal.customer_name}`}
+                    onChange={(e) => patchDeal({ broker: e.target.value })}>
+              {brokers.map((b) => <option key={b} value={b}>{b}</option>)}
+            </select>
+          ) : (
+            <DealerBrokerBadge broker={dealerBrokerOf(deal)} />
+          )}
+        </td>
+
         <td className="board-cell board-cell-name" data-label="Customer">{deal.customer_name}</td>
 
         <td className="board-cell board-cell-phone" data-label="Phone">
@@ -969,7 +1012,7 @@ function DealerDealRow({ deal, canEdit, statuses, open, onToggle, onChanged, onE
 
       {open && (
         <tr className="board-detail-row">
-          <td className="board-detail-cell" colSpan={5}>
+          <td className="board-detail-cell" colSpan={6}>
             <div className="board-detail">
               {/* Email lives here rather than in a board column — it is the
                   contact method nobody scans the board for, and the column it
@@ -1039,7 +1082,7 @@ function DealerDealRow({ deal, canEdit, statuses, open, onToggle, onChanged, onE
           message has to be reachable without opening it. */}
       {error && !open && (
         <tr className="board-detail-row">
-          <td className="board-detail-cell" colSpan={5}>
+          <td className="board-detail-cell" colSpan={6}>
             <p role="alert" className="deal-error">{error}</p>
           </td>
         </tr>
@@ -1075,6 +1118,7 @@ function DealerBoardGroup({ status, deals, collapsed, onToggleGroup, openIds, on
             <thead>
               <tr>
                 <th scope="col" className="board-cell-vehicle">Vehicle</th>
+                <th scope="col" className="board-cell-broker">Broker</th>
                 <th scope="col" className="board-cell-name">Customer</th>
                 <th scope="col" className="board-cell-phone">Phone</th>
                 <th scope="col" className="board-cell-note">Latest note</th>
@@ -1103,6 +1147,7 @@ function DealerKoCarsPage() {
   const [session, setSession] = useStateDealer(null);
   const [statuses, setStatuses] = useStateDealer([]);
   const [salespeople, setSalespeople] = useStateDealer([]);
+  const [brokers, setBrokers] = useStateDealer([]);
   const [deals, setDeals] = useStateDealer([]);
   const [fetchedAt, setFetchedAt] = useStateDealer(null);
   const [loadError, setLoadError] = useStateDealer('');
@@ -1143,6 +1188,7 @@ function DealerKoCarsPage() {
     if (res.ok && json && json.ok) {
       setStatuses(json.statuses || []);
       setSalespeople(json.salespeople || []);
+      setBrokers(json.brokers || []);
       setSession(json.authenticated ? json.session : null);
       return json.authenticated;
     }
@@ -1361,7 +1407,7 @@ function DealerKoCarsPage() {
             <DealerBoardGroup key={g.status} status={g.status} deals={g.deals}
                               collapsed={collapsed.has(g.status)} onToggleGroup={toggleGroup}
                               openIds={openIds} onToggleRow={toggleRow}
-                              canEdit={canEdit} statuses={statuses}
+                              canEdit={canEdit} statuses={statuses} brokers={brokers}
                               onChanged={refresh} onEdit={(deal) => setFormFor(deal)}
                               onInvoice={(deal) => setInvoiceFor(deal)} />
           ))}
@@ -1383,6 +1429,7 @@ function DealerKoCarsPage() {
           deal={formFor === 'new' ? null : formFor}
           statuses={statuses}
           salespeople={salespeople}
+          brokers={brokers}
           onClose={() => setFormFor(null)}
           onSaved={() => { setFormFor(null); refresh(); }}
         />

@@ -21,7 +21,7 @@
 //    server unless its roster row has canWrite (Jacob). Hiding the buttons in
 //    the UI is only cosmetic.
 const { requireSession, requireStaff } = require('../_session');
-const { validateDealInput, validateInvoiceRequest, clean, SETTLED_STATUS } = require('../_deals');
+const { validateDealInput, validateInvoiceRequest, validateBroker, clean, SETTLED_STATUS } = require('../_deals');
 const { KO_TO, sendEmail, buildStageChangeEmail, buildInvoiceRequestEmail } = require('../_dealer-email');
 const { lookupVehicle } = require('../_ko-vehicle');
 const {
@@ -117,6 +117,18 @@ async function handlePatch(req, res, session, dealer) {
     }
   }
 
+  // Broker-only change from the board's broker dropdown. A full edit already
+  // carried broker through validateDealInput above.
+  let brokerChange = null;
+  if (!editingFields && typeof body.broker === 'string') {
+    const { error, broker } = validateBroker(body.broker);
+    if (error || !broker) return res.status(400).json({ ok: false, error: error || 'Choose a broker.' });
+    patch.broker = broker;
+  }
+  if (patch.broker && patch.broker !== (existing.broker || null)) {
+    brokerChange = patch.broker;
+  }
+
   // settled_at is bookkeeping, never something the client sends. Stamped on the
   // move into Settled and cleared on the way back out, so a deal marked settled
   // by mistake and corrected the next day leaves the month's total cleanly.
@@ -151,6 +163,9 @@ async function handlePatch(req, res, session, dealer) {
   if (statusChange) {
     const emailNote = emailed ? ` KO Cars emailed (${KO_TO}).` : ' Email to KO Cars FAILED to send.';
     await insertNote(id, `Stage changed from "${statusChange.from}" to "${statusChange.to}".${emailNote}`, session.name);
+  }
+  if (brokerChange) {
+    await insertNote(id, `Broker set to ${brokerChange}.`, session.name);
   }
   if (typeof body.archived === 'boolean' && body.archived !== existing.archived) {
     await insertNote(id, body.archived ? 'Deal archived.' : 'Deal restored to the active list.', session.name);

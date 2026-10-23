@@ -8,7 +8,7 @@
 // It also serves DEAL_STATUSES so the browser never keeps its own copy of the
 // stage list that could drift from the server and the database CHECK.
 const { readSession, canWrite } = require('../_session');
-const { DEAL_STATUSES } = require('../_deals');
+const { DEAL_STATUSES, DEAL_BROKERS, DEFAULT_BROKER } = require('../_deals');
 const { getDealerBySlug } = require('../_supabase');
 const { salespeopleFor } = require('../_dealer-config');
 
@@ -45,6 +45,8 @@ module.exports = async function handler(req, res) {
     ok: true,
     authenticated: true,
     statuses: DEAL_STATUSES,
+    brokers: DEAL_BROKERS,
+    defaultBroker: DEFAULT_BROKER,
     // Roster of this dealer's salespeople, for staff's "assign to" dropdown
     // when adding/editing a deal. Served here so the UI never keeps its own
     // copy that could drift from _dealer-config.js.

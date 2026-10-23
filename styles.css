@@ -1766,10 +1766,11 @@ h1, h2, h3, h4 { margin: 0; font-family: var(--serif); font-weight: 400; letter-
 }
 /* Status is the column everyone reads across the room, so it gets room for
    the longest stage name ("Submitted to Lender") without wrapping. */
-.board-cell-vehicle { width: 24%; }
+.board-cell-vehicle { width: 22%; }
+.board-cell-broker  { width: 10%; min-width: 118px; }
 .board-cell-name    { width: 12%; }
-.board-cell-phone   { width: 12%; }
-.board-cell-note    { width: 31%; }
+.board-cell-phone   { width: 11%; }
+.board-cell-note    { width: 25%; }
 .board-cell-status  { width: 21%; min-width: 190px; }
 
 .board-row td {
@@ -2631,4 +2632,33 @@ h1, h2, h3, h4 { margin: 0; font-family: var(--serif); font-weight: 400; letter-
   .pt-partner-actions { margin-left: 0; }
   .pt-code { font-size: 21px; letter-spacing: 0.08em; }
   .pt-panel-body { max-height: none; }
+}
+
+/* ---- broker badge (KO board) ----
+   Solid fills, so it can't be mistaken for a status pill (those are pale).
+   One colour per broker; the name is always written out too. Both pass
+   WCAG AA for white text. */
+.broker-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 12px; border-radius: 6px;
+  font-size: 14px; font-weight: 800; letter-spacing: 0.01em; line-height: 1.2;
+  color: #FFFFFF; white-space: nowrap; box-shadow: 0 1px 2px rgba(0,0,0,0.18);
+}
+.broker-badge-label {
+  font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
+  opacity: 0.85;
+}
+.broker-select {
+  width: 100%; padding: 7px 10px; border-radius: 6px; cursor: pointer;
+  font-family: var(--sans); font-size: 14px; font-weight: 800;
+  color: #FFFFFF; border: 1px solid transparent; box-shadow: 0 1px 2px rgba(0,0,0,0.18);
+}
+.broker-select option { color: #0A1F3D; background: #FFFFFF; font-weight: 600; }
+.broker-select:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
+.broker-badge.broker-josh,  .broker-select.broker-josh  { background: #1D4ED8; border-color: #1E40AF; }
+.broker-badge.broker-jacob, .broker-select.broker-jacob { background: #C2410C; border-color: #9A3412; }
+@media (max-width: 900px) {
+  .board-row td.board-cell-broker::before { display: none; }
+  .board-cell-broker { padding-top: 8px; }
+  .broker-select { width: auto; min-width: 150px; }
 }

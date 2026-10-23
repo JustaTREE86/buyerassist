@@ -26,6 +26,21 @@ const DEAL_STATUSES = [
   'Cancelled',
 ];
 
+// Which Buyer Assist broker is running the deal. Shown as a coloured badge on
+// every row of the KO board so the dealer can tell at a glance who to call.
+// Mirrored by a CHECK constraint on public.deals.broker (see
+// supabase/2026-10-23-add-deal-broker.sql). Served to the browser by
+// /api/dealer/session, same as DEAL_STATUSES.
+const DEAL_BROKERS = ['Josh', 'Jacob'];
+const DEFAULT_BROKER = 'Josh';
+
+function validateBroker(value) {
+  const b = clean(value, 20);
+  if (!b) return { error: null, broker: null };
+  if (!DEAL_BROKERS.includes(b)) return { error: 'Choose Josh or Jacob as the broker.', broker: null };
+  return { error: null, broker: b };
+}
+
 // The stage that stamps settled_at. Named rather than written out at each use
 // so the bookkeeping in api/dealer/deals.js can never drift from the list above.
 const SETTLED_STATUS = 'Settled';
@@ -132,6 +147,14 @@ function validateDealInput(input, { partial = false } = {}) {
     salesperson: optional(body.salesperson, MAX.salesperson),
   };
 
+  // Broker is only written when it is sent, so an older client that doesn't
+  // know about it never resets a deal to the default.
+  if (body.broker !== undefined) {
+    const { error, broker } = validateBroker(body.broker);
+    if (error) errors.push(error);
+    else if (broker) record.broker = broker;
+  }
+
   return { errors, record };
 }
 
@@ -199,6 +222,6 @@ function validateInvoiceRequest(input) {
 }
 
 module.exports = {
-  DEAL_STATUSES, SETTLED_STATUS, MAX,
-  clean, optional, validateDealInput, validateNote, validateInvoiceRequest,
+  DEAL_STATUSES, SETTLED_STATUS, MAX, DEAL_BROKERS, DEFAULT_BROKER,
+  clean, validateBroker, optional, validateDealInput, validateNote, validateInvoiceRequest,
 };

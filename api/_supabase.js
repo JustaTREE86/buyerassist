@@ -66,7 +66,38 @@ const DEAL_COLUMNS = [
   'vehicle_registration', 'vehicle_stock_number', 'vehicle_price',
   'status', 'salesperson', 'archived', 'settled_at',
   'created_at', 'updated_at', 'created_by', 'updated_by',
-].join(',');
+];
+
+// broker arrives with supabase/2026-10-23-add-deal-broker.sql. Until that has
+// run, PostgREST rejects the column (42703 / PGRST204), so we fall back to the
+// old column list once and remember it. The board then shows every deal as
+// the default broker instead of breaking. Delete this fallback once the
+// migration is in every database this code talks to.
+let brokerColumnMissing = false;
+function dealColumns() {
+  return (brokerColumnMissing ? DEAL_COLUMNS : DEAL_COLUMNS.concat('broker')).join(',');
+}
+function isMissingBroker(err) {
+  return !brokerColumnMissing && err &&
+    (err.supabaseCode === '42703' || err.supabaseCode === 'PGRST204') &&
+    /broker/.test(err.message || '');
+}
+async function withBrokerFallback(run) {
+  try {
+    return await run();
+  } catch (err) {
+    if (!isMissingBroker(err)) throw err;
+    brokerColumnMissing = true;
+    console.warn('supabase: deals.broker missing, run the add-deal-broker migration');
+    return run();
+  }
+}
+
+function stripBrokerIfMissing(obj) {
+  if (!brokerColumnMissing || !obj || !('broker' in obj)) return obj;
+  const { broker, ...rest } = obj;
+  return rest;
+}
 
 const NOTE_COLUMNS = 'id,note,created_at,created_by';
 
@@ -80,44 +111,42 @@ async function getDealerBySlug(slug) {
 // Within a dealer there is no further filter: every login for that dealer sees
 // the whole board, salesperson column included.
 async function listDealsForDealer(dealerId, { archived = false } = {}) {
-  const path =
+  const listPath = () =>
     `deals?dealer_id=eq.${enc(dealerId)}` +
     `&archived=is.${archived ? 'true' : 'false'}` +
-    `&select=${enc(DEAL_COLUMNS)},deal_notes(${enc(NOTE_COLUMNS)})` +
+    `&select=${enc(dealColumns())},deal_notes(${enc(NOTE_COLUMNS)})` +
     `&order=updated_at.desc` +
     `&deal_notes.order=created_at.desc`;
-  return (await sbRequest(path)) || [];
+  return (await withBrokerFallback(() => sbRequest(listPath()))) || [];
 }
 
 // Fetches one deal, but only if it belongs to dealerId. Returns null when the
 // deal exists under a different dealer — the caller can't tell the difference,
 // which is what stops cross-dealer probing by id.
 async function getDealForDealer(dealId, dealerId) {
-  const path =
+  const rows = await withBrokerFallback(() => sbRequest(
     `deals?id=eq.${enc(dealId)}&dealer_id=eq.${enc(dealerId)}` +
-    `&select=${enc(DEAL_COLUMNS)}&limit=1`;
-  const rows = await sbRequest(path);
+    `&select=${enc(dealColumns())}&limit=1`));
   return (rows && rows[0]) || null;
 }
 
 async function insertDeal(record) {
-  const rows = await sbRequest(`deals?select=${enc(DEAL_COLUMNS)}`, {
+  const rows = await withBrokerFallback(() => sbRequest(`deals?select=${enc(dealColumns())}`, {
     method: 'POST',
-    body: record,
+    body: stripBrokerIfMissing(record),
     prefer: 'return=representation',
-  });
+  }));
   return (rows && rows[0]) || null;
 }
 
 async function updateDealForDealer(dealId, dealerId, patch) {
-  const path =
+  const rows = await withBrokerFallback(() => sbRequest(
     `deals?id=eq.${enc(dealId)}&dealer_id=eq.${enc(dealerId)}` +
-    `&select=${enc(DEAL_COLUMNS)}`;
-  const rows = await sbRequest(path, {
+    `&select=${enc(dealColumns())}`, {
     method: 'PATCH',
-    body: patch,
+    body: stripBrokerIfMissing(patch),
     prefer: 'return=representation',
-  });
+  }));
   return (rows && rows[0]) || null;
 }
 
