@@ -400,6 +400,10 @@ function dealerVehicleFromFields(f) {
     .filter(Boolean).join(' ').trim();
 }
 
+// Sentinel for the 'Archive' choice in the Edit deal stage dropdown. Never
+// sent to the server as a status.
+const DEALER_ARCHIVE_OPTION = '__archive__';
+
 function DealerDealForm({ deal, statuses, salespeople, brokers, onClose, onSaved }) {
   const editing = Boolean(deal);
   const [f, setF] = useStateDealer(() => {
@@ -460,7 +464,13 @@ function DealerDealForm({ deal, statuses, salespeople, brokers, onClose, onSaved
     try {
       // On edit the server ignores initial_note — the opening note already
       // exists and history is append-only.
-      const payload = editing ? { ...f, id: deal.id } : f;
+      // Picking 'Archive' in the stage dropdown is the Archive button's
+      // change (archived: true on the same PATCH /api/dealer/deals), so the
+      // stage itself stays as it was and no new status is invented.
+      const archiving = editing && f.status === DEALER_ARCHIVE_OPTION;
+      const payload = editing
+        ? (archiving ? { ...f, status: deal.status, id: deal.id, archived: true } : { ...f, id: deal.id })
+        : f;
       const { res, json } = await dealerFetch('/api/dealer/deals', {
         method: editing ? 'PATCH' : 'POST',
         body: JSON.stringify(payload),
@@ -600,6 +610,7 @@ function DealerDealForm({ deal, statuses, salespeople, brokers, onClose, onSaved
               <label htmlFor="d-status">Current stage <span aria-hidden="true">*</span></label>
               <select id="d-status" className="cr-select" required value={f.status} onChange={set('status')}>
                 {statuses.map((s) => <option key={s} value={s}>{s}</option>)}
+                {!deal.archived && <option value={DEALER_ARCHIVE_OPTION}>Archive</option>}
               </select>
             </div>
           )}
