@@ -1346,46 +1346,26 @@ function DealerKoCarsPage() {
           })}
         </div>
 
-        <div className="deal-controls">
-          <div className="deal-search">
-            <label htmlFor="deal-search" className="deal-label">Search</label>
-            <input id="deal-search" type="search" value={query} onChange={(e) => setQuery(e.target.value)}
-                   placeholder="Vehicle, rego, stock number or customer" />
-          </div>
-
-          <div className="deal-filter">
-            <label htmlFor="deal-status-filter" className="deal-label">Stage</label>
-            <select id="deal-status-filter" className="cr-select" value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value)}>
-              <option value="all">All stages</option>
-              {statuses.map((s) => <option key={s} value={s}>{s}</option>)}
-            </select>
-          </div>
-
-          <div className="deal-filter">
-            <label htmlFor="deal-sort" className="deal-label">Sort by</label>
-            <select id="deal-sort" className="cr-select" value={sort} onChange={(e) => setSort(e.target.value)}>
-              {DEALER_SORTS.map((s) => <option key={s.id} value={s.id}>{s.label}</option>)}
-            </select>
-          </div>
-
-          {canEdit && (
-            <button type="button" className="btn primary deal-add-btn" onClick={() => setFormFor('new')}>
-              Add deal
-            </button>
-          )}
-        </div>
-
+        {/* Search, stage filter and sort were removed 23 Oct 2026 at Josh's
+            request (the board is short enough to scan). The filter state
+            above stays at its defaults so the grouping code is unchanged. */}
         <div className="deal-subbar">
           <p className="deal-freshness">
             {fetchedAt ? `Last updated ${dealerClock(fetchedAt)} · refreshes automatically` : ''}
             {' '}
             <button type="button" className="btn link deal-refresh-now" onClick={refresh}>Refresh now</button>
           </p>
-          <p className="deal-count">
-            {visible.length} {visible.length === 1 ? 'deal' : 'deals'}
-            {visible.length !== inView.length ? ` of ${inView.length}` : ''}
-          </p>
+          <div className="deal-subbar-right">
+            <p className="deal-count">
+              {visible.length} {visible.length === 1 ? 'deal' : 'deals'}
+              {visible.length !== inView.length ? ` of ${inView.length}` : ''}
+            </p>
+            {canEdit && (
+              <button type="button" className="btn primary deal-add-btn deal-add-compact" onClick={() => setFormFor('new')}>
+                Add deal
+              </button>
+            )}
+          </div>
         </div>
       </header>
 

@@ -2635,30 +2635,30 @@ h1, h2, h3, h4 { margin: 0; font-family: var(--serif); font-weight: 400; letter-
 }
 
 /* ---- broker badge (KO board) ----
-   Solid fills, so it can't be mistaken for a status pill (those are pale).
-   One colour per broker; the name is always written out too. Both pass
-   WCAG AA for white text. */
+   Same pill shape and weight as the status badges, in the tracker's own
+   navy and gold, so it sits with the palette. Josh navy, Jacob gold; the
+   name is always written out too. Both pass WCAG AA. */
 .broker-badge {
-  display: inline-flex; align-items: center; gap: 6px;
-  padding: 6px 12px; border-radius: 6px;
-  font-size: 14px; font-weight: 800; letter-spacing: 0.01em; line-height: 1.2;
-  color: #FFFFFF; white-space: nowrap; box-shadow: 0 1px 2px rgba(0,0,0,0.18);
-}
-.broker-badge-label {
-  font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
-  opacity: 0.85;
+  display: inline-block; padding: 5px 12px; border-radius: 999px;
+  font-size: 13px; font-weight: 700; line-height: 1.3; white-space: nowrap;
+  border: 1px solid transparent;
 }
 .broker-select {
-  width: 100%; padding: 7px 10px; border-radius: 6px; cursor: pointer;
-  font-family: var(--sans); font-size: 14px; font-weight: 800;
-  color: #FFFFFF; border: 1px solid transparent; box-shadow: 0 1px 2px rgba(0,0,0,0.18);
+  width: 100%; padding: 6px 10px; border-radius: 999px; cursor: pointer;
+  font-family: var(--sans); font-size: 13px; font-weight: 700;
+  border: 1px solid transparent;
 }
 .broker-select option { color: #0A1F3D; background: #FFFFFF; font-weight: 600; }
 .broker-select:focus-visible { outline: 2px solid var(--gold); outline-offset: 1px; }
-.broker-badge.broker-josh,  .broker-select.broker-josh  { background: #1D4ED8; border-color: #1E40AF; }
-.broker-badge.broker-jacob, .broker-select.broker-jacob { background: #C2410C; border-color: #9A3412; }
+.broker-badge.broker-josh,  .broker-select.broker-josh  { background: #E6EBF3; color: #0A1F3D; border-color: #9FB0C8; }
+.broker-badge.broker-jacob, .broker-select.broker-jacob { background: #F6EDD6; color: #5E4310; border-color: #D9BC78; }
+
+.deal-subbar-right { display: flex; align-items: center; gap: 14px; }
+.deal-add-compact { padding: 8px 16px; font-size: 13.5px; }
+
 @media (max-width: 900px) {
   .board-row td.board-cell-broker::before { display: none; }
   .board-cell-broker { padding-top: 8px; }
-  .broker-select { width: auto; min-width: 150px; }
+  .broker-select { width: auto; min-width: 140px; }
 }
+.deal-subbar-right .deal-add-btn { width: auto; flex: 0 0 auto; }
