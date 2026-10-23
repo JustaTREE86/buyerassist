@@ -160,7 +160,7 @@ function dealerBrokerTone(name) {
 function DealerBrokerBadge({ broker }) {
   return (
     <span className={`broker-badge broker-${dealerBrokerTone(broker)}`}>
-      <span className="broker-badge-label">Broker</span> {broker}
+      {broker}
     </span>
   );
 }
