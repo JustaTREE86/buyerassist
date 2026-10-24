@@ -27,12 +27,12 @@ function useAutozoneNoIndex() {
 function AutozoneApplyPage() {
   useAutozoneNoIndex();
   return (
-    <main className="quote-embed-shell" data-screen-label="Josh — Quick Quote">
+    <main className="quote-embed-shell" data-screen-label="Quick Quote">
       <header className="quote-embed-header">
         <BrandLogo light={false} size="sm" />
         <div>
           <h1 className="h3" style={{ margin: 0 }}>Quick quote</h1>
-          <p className="body" style={{ margin: 0, color: 'var(--muted)', fontSize: 14 }}>with Josh · Senior Finance Broker</p>
+          <p className="body" style={{ margin: 0, color: 'var(--muted)', fontSize: 14 }}>with The Buyer Assist Group</p>
         </div>
       </header>
       <iframe

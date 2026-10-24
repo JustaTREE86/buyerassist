@@ -417,7 +417,7 @@ function KoApplyPage() {
     const docsMailto =
       `mailto:${KO_DOCS_EMAIL}?subject=${encodeURIComponent(`Documents for ${reference}${applicantName ? ' — ' + applicantName : ''}`)}` +
       `&body=${encodeURIComponent(
-        `Hi Josh,\n\nMy documents are attached for my KO Cars finance application.\n\nReference: ${reference}\n\nThanks.${applicantName ? '\n' + applicantName : ''}`
+        `Hi,\n\nMy documents are attached for my KO Cars finance application.\n\nReference: ${reference}\n\nThanks.${applicantName ? '\n' + applicantName : ''}`
       )}`;
 
     return (
@@ -430,7 +430,7 @@ function KoApplyPage() {
               <em style={{ fontStyle: 'italic', color: 'var(--gold-2)' }}>{f.a1First}</em>.
             </h1>
             <p className="lede" style={{ maxWidth: '48ch', marginBottom: 28 }}>
-              Your application is with Josh. He’ll be in touch within one business day. There is one more thing to do below, and doing it now is what gets you approved faster.
+              Your application is with our broker. We’ll be in touch within one business day. There is one more thing to do below, and doing it now is what gets you approved faster.
             </p>
 
             <div className="apply-ref-callout" style={{ marginBottom: 32 }}>
@@ -478,12 +478,12 @@ function KoApplyPage() {
             <div style={{ width: 44, height: 2, background: 'var(--gold)', margin: '12px 0 14px' }}></div>
             <h1 className="h3" style={{ margin: 0 }}>Finance application</h1>
             <p className="body" style={{ margin: '4px 0 0', color: 'var(--muted)', fontSize: 14 }}>
-              With Josh, Senior Finance Broker
+              With our finance broker
             </p>
           </header>
 
           <p className="lede" style={{ maxWidth: '52ch', marginBottom: 8 }}>
-            Fill this in once and Josh can go straight to the lenders. It takes about 10 minutes. Have your licence and a recent payslip handy.
+            Fill this in once and we can go straight to the lenders. It takes about 10 minutes. Have your licence and a recent payslip handy.
           </p>
           <p className="apply-panel-note" style={{ marginBottom: 28 }}>
             Fields marked * are required. Everything else helps, so fill in what you can. Documents are emailed through after you submit, so nothing is uploaded here.
@@ -508,7 +508,7 @@ function KoApplyPage() {
             <label className="apply-consent">
               <input type="checkbox" checked={f.vAck} onChange={set('vAck')} />
               <span>
-                <strong>I confirm this is the vehicle I am applying to finance.</strong> If the car changes, I will tell KO Cars and Josh before settlement.
+                <strong>I confirm this is the vehicle I am applying to finance.</strong> If the car changes, I will tell KO Cars and the broker before settlement.
               </span>
             </label>
 
@@ -809,7 +809,7 @@ function KoApplyPage() {
             )}
 
             <p className="apply-panel-note" style={{ marginTop: 4 }}>
-              Submitting this is not an application for credit with any lender and does not affect your credit score. Josh will review it and come back to you with options.
+              Submitting this is not an application for credit with any lender and does not affect your credit score. Our broker will review it and come back to you with options.
             </p>
 
             <button type="submit" className="btn primary" disabled={sending} style={{ marginTop: 8, opacity: sending ? 0.6 : 1 }}>

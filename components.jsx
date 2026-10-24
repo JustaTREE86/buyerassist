@@ -27,7 +27,6 @@ const PHOTOS = {
   leonieBespoke: '/assets/leonie-bespoke.jpg',
   founder: '/assets/leonie.jpg',
   team1: '/assets/leonie.jpg',
-  josh: '/assets/josh.jpg',
   meno: '/assets/meno.jpg',
   nick: '/assets/nick.jpg',
   // Supplied brand photography (Leonie + Wipe Credit Clean)
@@ -262,19 +261,6 @@ const BROKERS = [
     facebook: null,
     bio: 'Leonie founded The Buyer Assist Group after 17 years in the automotive industry, with one conviction: every client deserves a straight answer, not a sales pitch. She leads the team\'s approach to file writing, lender relationships, and responsible credit. If you\'ve been knocked back before, Leonie is the person you call.',
     specialties: ['Asset Finance', 'Personal Loans', 'Commercial Finance', 'Business Loans', 'Credit Repair'],
-  },
-  {
-    id: 'josh',
-    name: 'Josh',
-    role: 'Senior Finance Broker',
-    tag: 'Senior Broker',
-    photo: 'josh',
-    email: 'josh@thebuyerassist.com.au',
-    linkedin: null,
-    instagram: null,
-    facebook: null,
-    bio: 'Josh brings a decade of hands-on brokering to every file, with experience across Credit One and Aussie Loans before joining The Buyer Assist Group. He specialises in car and asset finance, equipment, personal loans, and unsecured business lending. Josh\'s approach is direct: he\'ll tell you what the numbers look like before you apply, and he won\'t waste your time chasing a deal that isn\'t there.',
-    specialties: ['Car & Asset Finance', 'Equipment Finance', 'Personal Loans', 'Business Loans'],
   },
   {
     id: 'meno',

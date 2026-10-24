@@ -4,16 +4,6 @@ const { useEffect: useEffectClients } = React;
 // Replace these with real client quotes — names and loan types only, no surnames needed
 const TESTIMONIALS = [
   {
-    quote: "Josh made the whole process dead simple. I had my car loan sorted in two days and the rate was better than anything the dealer offered.",
-    name: "Michael T.",
-    detail: "Asset & Car Loan · Brisbane",
-  },
-  {
-    quote: "I had a complicated situation with my credit history and Josh was upfront about everything. He found a lender that actually worked for me.",
-    name: "Sarah K.",
-    detail: "Personal Loan · Gold Coast",
-  },
-  {
     quote: "We needed equipment finance fast for a new contract. The Buyer Assist team had us approved and settled inside a week.",
     name: "Dave R.",
     detail: "Commercial Equipment · Brisbane Southside",

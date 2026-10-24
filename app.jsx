@@ -138,7 +138,7 @@ const TITLES = {
   broker: 'Our Team — The Buyer Assist Group',
   'dealer-ko-cars': 'KO Cars Deal Tracker — The Buyer Assist Group',
   'autozone-apply': 'Quick Quote — The Buyer Assist Group',
-  'apply-josh': 'Apply with Josh — The Buyer Assist Group',
+  'apply-josh': 'Quick quote — The Buyer Assist Group',
   'autozone-staff': 'AutoZone Staff Ad Copy — The Buyer Assist Group',
   // KO-only by Josh's instruction — no BAG suffix, unlike every other title
   // here. This page is presented as KO Cars' own form.
