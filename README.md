@@ -36,8 +36,7 @@ Built by **BrokenMind Software**.
 - **Apply** (`/apply`) — Loan-type picker, full-bleed (no nav/footer); each option links straight to its AFOS quick-quote page
 - **Privacy & Credit Guide** (`/privacy`) — NCCP disclosures, lender schedule
 - **Staff — Debt Busters outcome** (`/staff/debt-busters`) — **hidden**, password-gated, not linked from nav/footer/sitemap. See "Hidden staff page" below.
-- **Josh's quick quote** (`/autozone-apply`) — **hidden**, not linked from nav/footer/sitemap. Full-bleed embed of Josh's personal AFOS referral widget (`page-autozone.jsx`) — a link he sends directly to clients.
-- **Quick quote** (`/apply/leonie`) — **hidden**, not linked from nav/footer/sitemap. Same embed as `/autozone-apply` (reuses `AutozoneApplyPage`). `/apply/josh` 308s here. `/ko-apply` 308s to brokenmind.com.au/ko/apply.
+- `/apply/josh` and `/autozone-apply` 308 to the home page (AFOS quick-quote widget removed 24 Oct 2026). `/ko-apply` 308s to brokenmind.com.au/ko/apply.
 - **Referral Partner Portal demo** (`/portal-demo`) — **hidden**, not linked from nav/footer/sitemap. The generic sales prototype (`page-portal-demo.jsx`) Josh shows to any broker: six referrer verticals, a viewer switcher, and a "How it works" panel. Entirely invented data, no API, no login.
 - **Ready Finance Group demo** (`/portal-demo/ready-finance`) — **hidden**, not linked from nav/footer/sitemap. The same product (`page-rf-demo.jsx`) pre-branded for one prospect: real Ready Finance logo and blue (`#1681B7`), a home loan pipeline, and their four kinds of referrer (agency, buyers advocate, conveyancer, accountant). Three views off the demo bar: the board, a partner login mock, and "How it works". Same rules as `/portal-demo` — no API, no login, every applicant and note invented, phone numbers from the ACMA fiction range. **Before sending the link, confirm `RF.domain` in `page-rf-demo.jsx`** — `partners.readyfinance.com.au` is a placeholder built from their trading name, not a domain anyone has confirmed.
 
@@ -120,7 +119,6 @@ Without these set, `/staff/debt-busters` still loads and rejects logins with a c
 | `page-clients.jsx` | Our Clients — testimonials + reviews widget |
 | `page-privacy.jsx` | Privacy & Credit Guide |
 | `page-staff.jsx` | Hidden `/staff/debt-busters` page — password gate + outcome form |
-| `page-autozone.jsx` | Hidden `/autozone-apply` page — full-bleed embed of Josh's personal AFOS referral widget |
 | `page-portal-demo.jsx` | Hidden `/portal-demo` — generic Referral Partner Portal sales demo, six referrer verticals |
 | `page-rf-demo.jsx` | Hidden `/portal-demo/ready-finance` — the same demo pre-branded for Ready Finance Group |
 | `app.jsx` | Router (`ROUTES`/`pathFor`/`parsePath`), Nav, Footer, top-level `App` |

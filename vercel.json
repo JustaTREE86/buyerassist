@@ -15,10 +15,10 @@
       }
     },
     {
-      "src": "/apply/josh/?",
+      "src": "/(apply/josh|autozone-apply)/?",
       "status": 308,
       "headers": {
-        "Location": "/apply/leonie"
+        "Location": "/"
       }
     },
     {
@@ -30,20 +30,6 @@
     },
     {
       "src": "/dealer/(.*)",
-      "headers": {
-        "X-Robots-Tag": "noindex, nofollow, noarchive, nosnippet"
-      },
-      "continue": true
-    },
-    {
-      "src": "/autozone-apply",
-      "headers": {
-        "X-Robots-Tag": "noindex, nofollow, noarchive, nosnippet"
-      },
-      "continue": true
-    },
-    {
-      "src": "/apply/leonie",
       "headers": {
         "X-Robots-Tag": "noindex, nofollow, noarchive, nosnippet"
       },

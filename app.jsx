@@ -1,4 +1,4 @@
-/* global React, ReactDOM, LogoExisting, LogoProposed, Icon, HomePage, ServicesPage, AboutPage, ApplyPage, BrokerProfilePage, PartnersPage, CreditRepairPage, CreditRepairEnquiryPage, PrivacyPage, ClientsPage, StaffDebtBustersPage, DealerKoCarsPage, AutozoneApplyPage, AutozoneStaffPage, PortalDemoPage, ReadyFinanceDemoPage, LOANS, afosLink, useTweaks, TweaksPanel, TweakSection, TweakRadio, TweakColor */
+/* global React, ReactDOM, LogoExisting, LogoProposed, Icon, HomePage, ServicesPage, AboutPage, ApplyPage, BrokerProfilePage, PartnersPage, CreditRepairPage, CreditRepairEnquiryPage, PrivacyPage, ClientsPage, StaffDebtBustersPage, DealerKoCarsPage, AutozoneStaffPage, PortalDemoPage, ReadyFinanceDemoPage, LOANS, afosLink, useTweaks, TweaksPanel, TweakSection, TweakRadio, TweakColor */
 const { useState: useStateApp, useEffect: useEffectApp } = React;
 
 // Makes an onClick element keyboard-operable (Enter/Space) and exposes it to
@@ -94,13 +94,6 @@ const ROUTES = [
   // Hidden dealer dashboards. Listed here so the URL resolves on a hard
   // refresh — deliberately not linked from Nav, the footer or the sitemap.
   { id: 'dealer-ko-cars', path: '/dealer/ko-cars' },
-  // Josh's personal AFOS quick-quote link, sent directly to his own clients —
-  // not linked from Nav, the footer or the sitemap.
-  { id: 'autozone-apply', path: '/autozone-apply' },
-  // Same quick-quote embed as autozone-apply, at a clean vanity URL to post
-  // publicly. /apply/josh 308s here (vercel.json) so old links keep working.
-  // Not linked from Nav, the footer or the sitemap.
-  { id: 'apply-leonie', path: '/apply/leonie' },
   // AutoZone QLD staff ad-copy tool — internal reference for the dealership,
   // not linked from Nav, the footer or the sitemap.
   { id: 'autozone-staff', path: '/autozone-staff' },
@@ -133,8 +126,6 @@ const TITLES = {
   apply: 'Apply — The Buyer Assist Group',
   broker: 'Our Team — The Buyer Assist Group',
   'dealer-ko-cars': 'KO Cars Deal Tracker — The Buyer Assist Group',
-  'autozone-apply': 'Quick Quote — The Buyer Assist Group',
-  'apply-leonie': 'Quick quote — The Buyer Assist Group',
   'autozone-staff': 'AutoZone Staff Ad Copy — The Buyer Assist Group',
   // here. This page is presented as KO Cars' own form.
   'portal-demo': 'Referral Partner Portal — demo',
@@ -469,18 +460,6 @@ function App() {
   // that could link back out to the marketing site.
   if (page === 'dealer-ko-cars') {
     return <DealerKoCarsPage/>;
-  }
-
-  // Josh's personal quick-quote embed — same isolation: nothing that leads
-  // a client back into the marketing site or the tweaks panel.
-  if (page === 'autozone-apply') {
-    return <AutozoneApplyPage/>;
-  }
-
-  // Same embed as autozone-apply, at the /apply/leonie vanity URL.
-  // Same isolation: no nav, footer, floating buttons or tweaks panel.
-  if (page === 'apply-leonie') {
-    return <AutozoneApplyPage/>;
   }
 
   // AutoZone QLD staff ad-copy tool — isolated internal page, no public chrome.
