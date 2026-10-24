@@ -1,15 +1,81 @@
 {
   "routes": [
-    { "src": "/staff/(.*)", "headers": { "X-Robots-Tag": "noindex, nofollow" }, "continue": true },
-    { "src": "/dealer/(.*)", "headers": { "X-Robots-Tag": "noindex, nofollow, noarchive, nosnippet" }, "continue": true },
-    { "src": "/autozone-apply", "headers": { "X-Robots-Tag": "noindex, nofollow, noarchive, nosnippet" }, "continue": true },
-    { "src": "/apply/josh", "headers": { "X-Robots-Tag": "noindex, nofollow, noarchive, nosnippet" }, "continue": true },
-    { "src": "/autozone-staff", "headers": { "X-Robots-Tag": "noindex, nofollow, noarchive, nosnippet" }, "continue": true },
-    { "src": "/ko-apply", "headers": { "X-Robots-Tag": "noindex, nofollow, noarchive, nosnippet" }, "continue": true },
-    { "src": "/portal-demo", "headers": { "X-Robots-Tag": "noindex, nofollow, noarchive, nosnippet" }, "continue": true },
-    { "src": "/portal-demo/(.*)", "headers": { "X-Robots-Tag": "noindex, nofollow, noarchive, nosnippet" }, "continue": true },
-    { "src": "/portal/(.*)", "headers": { "X-Robots-Tag": "noindex, nofollow, noarchive, nosnippet" }, "continue": true },
-    { "handle": "filesystem" },
-    { "src": "/(.*)", "dest": "/index.html" }
+    {
+      "src": "/dealer/ko-cars(/.*)?",
+      "status": 308,
+      "headers": {
+        "Location": "https://brokenmind.com.au/ko$1"
+      }
+    },
+    {
+      "src": "/staff/(.*)",
+      "headers": {
+        "X-Robots-Tag": "noindex, nofollow"
+      },
+      "continue": true
+    },
+    {
+      "src": "/dealer/(.*)",
+      "headers": {
+        "X-Robots-Tag": "noindex, nofollow, noarchive, nosnippet"
+      },
+      "continue": true
+    },
+    {
+      "src": "/autozone-apply",
+      "headers": {
+        "X-Robots-Tag": "noindex, nofollow, noarchive, nosnippet"
+      },
+      "continue": true
+    },
+    {
+      "src": "/apply/josh",
+      "headers": {
+        "X-Robots-Tag": "noindex, nofollow, noarchive, nosnippet"
+      },
+      "continue": true
+    },
+    {
+      "src": "/autozone-staff",
+      "headers": {
+        "X-Robots-Tag": "noindex, nofollow, noarchive, nosnippet"
+      },
+      "continue": true
+    },
+    {
+      "src": "/ko-apply",
+      "headers": {
+        "X-Robots-Tag": "noindex, nofollow, noarchive, nosnippet"
+      },
+      "continue": true
+    },
+    {
+      "src": "/portal-demo",
+      "headers": {
+        "X-Robots-Tag": "noindex, nofollow, noarchive, nosnippet"
+      },
+      "continue": true
+    },
+    {
+      "src": "/portal-demo/(.*)",
+      "headers": {
+        "X-Robots-Tag": "noindex, nofollow, noarchive, nosnippet"
+      },
+      "continue": true
+    },
+    {
+      "src": "/portal/(.*)",
+      "headers": {
+        "X-Robots-Tag": "noindex, nofollow, noarchive, nosnippet"
+      },
+      "continue": true
+    },
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
   ]
 }
