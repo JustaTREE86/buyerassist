@@ -6,7 +6,7 @@
 //
 // Three roles:
 //
-//   owner    Josh / Buyer Assist. Reaches every org, read and write. This is
+//   owner    Leonie / Buyer Assist. Reaches every org, read and write. This is
 //            the support login, not a login any client is given.
 //   staff    The brokerage running the portal (Ben, Alana at Ready Finance).
 //            Read and write on their own org's board only.
@@ -37,7 +37,7 @@ const PORTAL_ROLE_OWNER = 'owner';
 const PORTAL_ROLE_STAFF = 'staff';
 const PORTAL_ROLE_PARTNER = 'partner';
 
-// Josh's own password, valid on every org. Deliberately a single var rather
+// Leonie's owner password, valid on every org. Deliberately a single var rather
 // than one per org: it is the support key, and one of it is easier to rotate.
 const OWNER_PASSWORD_ENV = 'PORTAL_OWNER_PASSWORD';
 

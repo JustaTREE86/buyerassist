@@ -8,6 +8,20 @@
       }
     },
     {
+      "src": "/ko-apply(/.*)?",
+      "status": 308,
+      "headers": {
+        "Location": "https://brokenmind.com.au/ko/apply$1"
+      }
+    },
+    {
+      "src": "/apply/josh/?",
+      "status": 308,
+      "headers": {
+        "Location": "/apply/leonie"
+      }
+    },
+    {
       "src": "/staff/(.*)",
       "headers": {
         "X-Robots-Tag": "noindex, nofollow"
@@ -29,7 +43,7 @@
       "continue": true
     },
     {
-      "src": "/apply/josh",
+      "src": "/apply/leonie",
       "headers": {
         "X-Robots-Tag": "noindex, nofollow, noarchive, nosnippet"
       },
@@ -37,13 +51,6 @@
     },
     {
       "src": "/autozone-staff",
-      "headers": {
-        "X-Robots-Tag": "noindex, nofollow, noarchive, nosnippet"
-      },
-      "continue": true
-    },
-    {
-      "src": "/ko-apply",
       "headers": {
         "X-Robots-Tag": "noindex, nofollow, noarchive, nosnippet"
       },

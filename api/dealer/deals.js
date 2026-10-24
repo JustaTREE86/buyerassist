@@ -5,7 +5,7 @@
 //   PATCH edit / restage / archive (staff only). A stage change emails KO Cars.
 //
 //   GET  ?action=vehicle           look a car up on the KO Cars website (staff)
-//   POST ?action=invoice-request   email KO Cars an invoice request (staff)
+//   POST ?action=invoice-request   retired (410), KO emails removed
 //
 // The two actions live here rather than in their own files because the
 // project is at 11 of Vercel Hobby's 12 functions (see README).
@@ -22,7 +22,6 @@
 //    the UI is only cosmetic.
 const { requireSession, requireStaff } = require('../_session');
 const { validateDealInput, validateInvoiceRequest, validateBroker, clean, SETTLED_STATUS } = require('../_deals');
-const { KO_TO, sendEmail, buildStageChangeEmail, buildInvoiceRequestEmail } = require('../_dealer-email');
 const { lookupVehicle } = require('../_ko-vehicle');
 const {
   getDealerBySlug,
@@ -142,27 +141,14 @@ async function handlePatch(req, res, session, dealer) {
   const deal = await updateDealForDealer(id, dealer.id, patch);
   if (!deal) return res.status(404).json({ ok: false, error: 'Deal not found.' });
 
-  // KO Cars hear about every stage move by email. The stage is already saved
-  // by this point; a failed email is logged on the deal and reported to the
-  // UI, never allowed to roll the change back.
-  let emailed = null;
-  if (statusChange) {
-    try {
-      await sendEmail(buildStageChangeEmail({
-        deal, from: statusChange.from, to: statusChange.to, changedBy: session.name,
-      }));
-      emailed = true;
-    } catch (err) {
-      console.error('dealer/deals: stage email failed: ' + err.message);
-      emailed = false;
-    }
-  }
+  // KO dealer emails were removed 24 Oct 2026 (the KO board now lives on
+  // brokenmind.com.au/ko). Nothing is emailed from here any more.
+  const emailed = null;
 
   // Stage moves and archiving are logged to the history automatically, so the
   // activity trail explains itself without staff having to write it out.
   if (statusChange) {
-    const emailNote = emailed ? ` KO Cars emailed (${KO_TO}).` : ' Email to KO Cars FAILED to send.';
-    await insertNote(id, `Stage changed from "${statusChange.from}" to "${statusChange.to}".${emailNote}`, session.name);
+    await insertNote(id, `Stage changed from "${statusChange.from}" to "${statusChange.to}".`, session.name);
   }
   if (brokerChange) {
     await insertNote(id, `Broker set to ${brokerChange}.`, session.name);
@@ -194,36 +180,9 @@ async function handleVehicleLookup(req, res) {
   }
 }
 
-// POST ?action=invoice-request  { id, message, buyer, vehicle, finance }
-async function handleInvoiceRequest(req, res, session, dealer) {
-  const body = req.body || {};
-  const id = clean(body.id, 64);
-  if (!id) return res.status(400).json({ ok: false, error: 'Missing deal id.' });
-
-  const deal = await getDealForDealer(id, dealer.id);
-  if (!deal) return res.status(404).json({ ok: false, error: 'Deal not found.' });
-
-  const { errors, request } = validateInvoiceRequest(body);
-  if (errors.length) return res.status(400).json({ ok: false, error: errors[0], errors });
-
-  const email = buildInvoiceRequestEmail(request);
-  try {
-    await sendEmail(email);
-  } catch (err) {
-    console.error('dealer/deals: invoice request email failed: ' + err.message);
-    // Hand the text back so Josh can paste it into Outlook instead.
-    return res.status(502).json({
-      ok: false,
-      error: 'The email did not send. Copy the text below into Outlook instead.',
-      fallback: { to: email.to, subject: email.subject, text: email.text },
-    });
-  }
-
-  // No buyer PII in the note: DOB and licence stay in the email only.
-  await insertNote(id, `Invoice request emailed to KO Cars (${KO_TO}) for ${request.vehicle.title}.`, session.name);
-  await updateDealForDealer(id, dealer.id, { updated_by: session.name });
-
-  return res.status(200).json({ ok: true });
+// POST ?action=invoice-request: retired with the KO dealer email code.
+async function handleInvoiceRequest(req, res) {
+  return res.status(410).json({ ok: false, error: 'Invoice request emails have been retired. Use brokenmind.com.au/ko.' });
 }
 
 module.exports = async function handler(req, res) {

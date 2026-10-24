@@ -1,4 +1,4 @@
-/* global React, ReactDOM, LogoExisting, LogoProposed, Icon, HomePage, ServicesPage, AboutPage, ApplyPage, BrokerProfilePage, PartnersPage, CreditRepairPage, CreditRepairEnquiryPage, PrivacyPage, ClientsPage, StaffDebtBustersPage, DealerKoCarsPage, AutozoneApplyPage, AutozoneStaffPage, KoApplyPage, PortalDemoPage, ReadyFinanceDemoPage, LOANS, afosLink, useTweaks, TweaksPanel, TweakSection, TweakRadio, TweakColor */
+/* global React, ReactDOM, LogoExisting, LogoProposed, Icon, HomePage, ServicesPage, AboutPage, ApplyPage, BrokerProfilePage, PartnersPage, CreditRepairPage, CreditRepairEnquiryPage, PrivacyPage, ClientsPage, StaffDebtBustersPage, DealerKoCarsPage, AutozoneApplyPage, AutozoneStaffPage, PortalDemoPage, ReadyFinanceDemoPage, LOANS, afosLink, useTweaks, TweaksPanel, TweakSection, TweakRadio, TweakColor */
 const { useState: useStateApp, useEffect: useEffectApp } = React;
 
 // Makes an onClick element keyboard-operable (Enter/Space) and exposes it to
@@ -97,17 +97,13 @@ const ROUTES = [
   // Josh's personal AFOS quick-quote link, sent directly to his own clients —
   // not linked from Nav, the footer or the sitemap.
   { id: 'autozone-apply', path: '/autozone-apply' },
-  // Same quick-quote embed as autozone-apply, at a clean vanity URL for Josh
-  // to post publicly (Facebook, business cards, etc). Not linked from Nav,
-  // the footer or the sitemap.
-  { id: 'apply-josh', path: '/apply/josh' },
+  // Same quick-quote embed as autozone-apply, at a clean vanity URL to post
+  // publicly. /apply/josh 308s here (vercel.json) so old links keep working.
+  // Not linked from Nav, the footer or the sitemap.
+  { id: 'apply-leonie', path: '/apply/leonie' },
   // AutoZone QLD staff ad-copy tool — internal reference for the dealership,
   // not linked from Nav, the footer or the sitemap.
   { id: 'autozone-staff', path: '/autozone-staff' },
-  // The full finance application Charlie and the KO Cars floor send to their
-  // customers — replaced the AFOS quick-quote embed that used to sit here.
-  // Not linked from Nav, the footer or the sitemap.
-  { id: 'ko-apply', path: '/ko-apply' },
   // Referral Partner Portal sales demo — the prototype Josh shows to other
   // brokers. Entirely invented data, no API, no login. Not linked from Nav,
   // the footer or the sitemap; the URL is handed out directly.
@@ -138,11 +134,9 @@ const TITLES = {
   broker: 'Our Team — The Buyer Assist Group',
   'dealer-ko-cars': 'KO Cars Deal Tracker — The Buyer Assist Group',
   'autozone-apply': 'Quick Quote — The Buyer Assist Group',
-  'apply-josh': 'Quick quote — The Buyer Assist Group',
+  'apply-leonie': 'Quick quote — The Buyer Assist Group',
   'autozone-staff': 'AutoZone Staff Ad Copy — The Buyer Assist Group',
-  // KO-only by Josh's instruction — no BAG suffix, unlike every other title
   // here. This page is presented as KO Cars' own form.
-  'ko-apply': 'KO Cars — Finance Application',
   'portal-demo': 'Referral Partner Portal — demo',
   'rf-demo': 'Referral Partner Portal · Ready Finance Group demo',
   // Placeholder only. PortalPage replaces this with the firm's own name as
@@ -483,22 +477,15 @@ function App() {
     return <AutozoneApplyPage/>;
   }
 
-  // Same embed as autozone-apply, at the /apply/josh vanity URL Josh shares
-  // publicly. Same isolation: no nav, footer, floating buttons or tweaks panel.
-  if (page === 'apply-josh') {
+  // Same embed as autozone-apply, at the /apply/leonie vanity URL.
+  // Same isolation: no nav, footer, floating buttons or tweaks panel.
+  if (page === 'apply-leonie') {
     return <AutozoneApplyPage/>;
   }
 
   // AutoZone QLD staff ad-copy tool — isolated internal page, no public chrome.
   if (page === 'autozone-staff') {
     return <AutozoneStaffPage/>;
-  }
-
-  // KO Cars full finance application — same isolation as autozone-apply:
-  // nothing that leads a KO customer back into the marketing site or the
-  // tweaks panel.
-  if (page === 'ko-apply') {
-    return <KoApplyPage/>;
   }
 
   // Referral Partner Portal sales demo. Isolated like the other hidden pages:

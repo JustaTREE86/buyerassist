@@ -3,7 +3,7 @@
 // The org comes from the URL the browser is on (/portal/:slug) and is checked
 // against the roster in _portal-config.js. What was typed decides the role:
 //
-//   PORTAL_OWNER_PASSWORD    -> owner   (read/write, any org — Josh's support login)
+//   PORTAL_OWNER_PASSWORD    -> owner   (read/write, any org — Leonie's support login)
 //   an org staff password    -> staff   (read/write, that org's whole board)
 //   a partner access code    -> partner (their own referrals, and they can
 //                                        write back on those)
