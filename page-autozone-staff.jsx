@@ -2,7 +2,7 @@
 // =============================================================
 // Hidden AutoZone staff ad-copy tool — /autozone-staff
 //
-// NOT the customer page. /autozone-apply is the customer quote widget;
+// NOT the customer page. brokenmind.com.au/ko/apply is the customer application;
 // THIS page is an internal reference AutoZone QLD staff open to grab
 // ready-made, compliant Facebook ad copy for each vehicle price point.
 //
@@ -35,7 +35,7 @@ function azsCaption(weekly) {
   // can't carry real HTML anchors — a clean URL is what makes it clickable).
   return 'From $' + weekly + ' per week.\n'
     + 'APPLY NOW 👉\n'
-    + 'https://www.thebuyerassist.com.au/autozone-apply\n'
+    + 'https://brokenmind.com.au/ko/apply\n'
     + 'To Approved Purchasers (T.A.P). Fees, T&Cs and lending criteria apply.';
 }
 
@@ -80,7 +80,7 @@ function AutozoneStaffPage() {
         </div>
         <div className="azs-apply">
           <span className="azs-apply-l">Apply link</span>
-          <span className="azs-apply-u">thebuyerassist.com.au/autozone-apply</span>
+          <span className="azs-apply-u">brokenmind.com.au/ko/apply</span>
         </div>
       </header>
 
@@ -153,7 +153,7 @@ function AutozoneStaffPage() {
         </p>
         <p className="azs-flag">
           Facebook captions carry the apply link only. The full disclaimer above, including the comparison rate warning,
-          must appear on the /autozone-apply landing page so every ad points to compliant fine print.
+          must appear on the brokenmind.com.au/ko/apply landing page so every ad points to compliant fine print.
         </p>
       </div>
     </main>
