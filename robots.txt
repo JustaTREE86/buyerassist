@@ -3,5 +3,6 @@ Allow: /
 Disallow: /staff/
 Disallow: /dealer/
 Disallow: /autozone-staff
+Disallow: /autozone-apply
 Disallow: /portal/
 Disallow: /portal-demo
